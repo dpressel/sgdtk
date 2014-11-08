@@ -4,7 +4,7 @@ import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 
 import org.sgdtk.*;
-import org.sgdtk.struct.SGDLearner;
+import org.sgdtk.SGDLearner;
 import org.sgdtk.fileio.SVMLightFileFeatureProvider;
 import org.sgdtk.SquareLoss;
 import java.io.*;
