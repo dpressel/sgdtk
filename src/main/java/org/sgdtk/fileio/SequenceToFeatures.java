@@ -2,14 +2,14 @@ package org.sgdtk.fileio;
 
 import org.sgdtk.FeatureNameEncoder;
 import org.sgdtk.Offset;
-import org.sgdtk.SequenceProvider;
+import org.sgdtk.struct.SequenceProvider;
 import org.sgdtk.struct.*;
 
 import java.io.IOException;
 import java.util.*;
 
 /**
- * A {@link org.sgdtk.struct.SequentialFeatureProvider} implementation using a {@link org.sgdtk.SequenceProvider}
+ * A {@link org.sgdtk.struct.SequentialFeatureProvider} implementation using a {@link org.sgdtk.struct.SequenceProvider}
  *
  * The idea here is to make it simple and fast to provide a pipeline of feature vectors from a source
  * to the trainer or evaluator as a sink to support non in-core learning.
@@ -58,7 +58,7 @@ public class SequenceToFeatures implements SequentialFeatureProvider
     }
 
     /**
-     * This method provides the next sequence, using its underlying {@link org.sgdtk.SequenceProvider} to do the work.
+     * This method provides the next sequence, using its underlying {@link org.sgdtk.struct.SequenceProvider} to do the work.
      * Essentially, we are building a pipeline of conversion from text data to a feature vector sequences
      *
      * @return The next sequence or null if end of stream is reached.

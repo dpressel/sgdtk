@@ -1,4 +1,4 @@
-package org.sgdtk;
+package org.sgdtk.struct;
 
 import org.sgdtk.struct.State;
 

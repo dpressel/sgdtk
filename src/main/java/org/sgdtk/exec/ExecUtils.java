@@ -1,7 +1,7 @@
 package org.sgdtk.exec;
 
 import org.sgdtk.LazyFeatureDictionaryEncoder;
-import org.sgdtk.SequenceProvider;
+import org.sgdtk.struct.SequenceProvider;
 import org.sgdtk.fileio.CONLLFileSentenceProvider;
 import org.sgdtk.fileio.SequenceToFeatures;
 import org.sgdtk.struct.*;

@@ -1,6 +1,6 @@
 package org.sgdtk.fileio;
 
-import org.sgdtk.SequenceProvider;
+import org.sgdtk.struct.SequenceProvider;
 import org.sgdtk.struct.State;
 
 import java.io.BufferedReader;
