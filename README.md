@@ -8,7 +8,7 @@ The initial goal was a simple, modular implementation of Leon Bottou's SGD exper
 
 The design here is notionally split into two types of learning problems, unstructured classifiers (e.g., hinge-loss, log-loss etc) and structured classifiers (currently CRFs only as implemented in the SGD experiments).  I have tried to keep the interfaces similar for both types of problems.  It should be possible to add additional learners by extending the Learner/SequentialLearner and the Model/SequentialModel.
 
-There is now experimental support for fast out-of-core processing, inspired by VW, where a thread loads the data from file, adds it to a ring buffer, and a processor trains the data.  For future passes, the data is reincarnated from a cache file (again, like VW) and loaddd onto the ring buffer from the cache.  Its also possible to reuse a cache from previous runs.
+There is now experimental support for fast out-of-core processing, inspired by VW, where a thread loads the data from file, adds it to a ring buffer, and a processor trains the data.  For multiple passes, the data is reincarnated from a cache file (again, like VW) and loaded back onto the ring buffer from the cache.  Its also possible to reuse a cache from previous runs.
 
 The library was developed and tested in Intellij using Java 8, but can be built, installed and run from Maven and should work on lower Java versions.  The only dependencies in the library currently are JCommander for easy command line parsing and slf4j/logback for logging.
 
