@@ -24,6 +24,10 @@ public interface Learner
      */
     Model trainEpoch(Model model, List<FeatureVector> trainingExamples);
 
+    void trainOne(Model model, FeatureVector fv);
+
+    void preprocess(Model model, List<FeatureVector> sample);
+
     /**
      * Evaluate a single instance
      * @param model The model to use for evaluation

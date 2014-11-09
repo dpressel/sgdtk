@@ -44,8 +44,19 @@ public class SGDLearner implements Learner
      */
     public SGDLearner(Loss loss, double lambda)
     {
+        this(loss, lambda, -1.);
+    }
+
+    /**
+     * Constructor with loss function, regularization param
+     * @param loss loss function
+     * @param lambda regularization param
+     */
+    public SGDLearner(Loss loss, double lambda, double kEta)
+    {
         this.lossFunction = loss;
         this.lambda = lambda;
+        this.eta0 = kEta;
     }
 
     /**
@@ -74,22 +85,34 @@ public class SGDLearner implements Learner
         // Check if we have eta set already
         if (eta0 <= 0)
         {
-            initEta0(model, trainingExamples.subList(0, Math.min(1000, trainingExamples.size())));
+            preprocess(model, trainingExamples.subList(0, Math.min(1000, trainingExamples.size())));
             log.info("eta0=" + eta0);
         }
-        LinearModel lm = (LinearModel)model;
+
         for (FeatureVector fv : trainingExamples)
         {
-            double eta = eta0 / (1 + lambda * eta0 * numSeenTotal);
-            trainOne(lm, fv, eta);
-            ++numSeenTotal;
+            trainOne(model, fv);
+
         }
 
+        LinearModel lm = (LinearModel)model;
         log.info("wnorm=" + lm.mag());
         return model;
     }
 
-    private void trainOne(LinearModel lm, FeatureVector fv, double eta)
+
+    @Override
+    public void trainOne(Model model, FeatureVector fv)
+    {
+        LinearModel lm = (LinearModel)model;
+        double eta = eta0 / (1 + lambda * eta0 * numSeenTotal);
+
+        trainOneWithEta(lm, fv, eta);
+
+        ++numSeenTotal;
+    }
+
+    private void trainOneWithEta(LinearModel lm, FeatureVector fv, double eta)
     {
         double y = fv.getY();
         double fx = lm.predict(fv);
@@ -120,10 +143,10 @@ public class SGDLearner implements Learner
 
         wbias += -etab * d;
         lm.setWbias(wbias);
-
     }
 
-    private void initEta0(Model model, List<FeatureVector> sample)
+    @Override
+    public void preprocess(Model model, List<FeatureVector> sample)
     {
         double lowEta = LOW_ETA_0;
         double lowCost = evalEta(model, sample, lowEta);
@@ -159,7 +182,7 @@ public class SGDLearner implements Learner
         LinearModel clone = (LinearModel)model.prototype();
         for (FeatureVector fv : sample)
         {
-            trainOne(clone, fv, eta);
+            trainOneWithEta(clone, fv, eta);
         }
         Metrics metrics = new Metrics();
         eval(clone, sample, metrics);

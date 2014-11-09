@@ -36,6 +36,9 @@ public class Train
         @Parameter(description = "lambda", names = {"--lambda", "-lambda"})
         public Double lambda = 1e-5;
 
+        @Parameter(description = "eta0, if not set, try and preprocess to find", names = {"--eta0", "-e0"})
+        public Double eta0 = -1.;
+
         @Parameter(description = "Number of epochs", names = {"--epochs", "-epochs"})
         public Integer epochs = 5;
 
@@ -68,8 +71,10 @@ public class Train
             }
             SVMLightFileFeatureProvider reader = new SVMLightFileFeatureProvider(dims.width);
 
+            long l0 = System.currentTimeMillis();
             List<FeatureVector> trainingSet = reader.load(trainFile);
-
+            double elapsed = (System.currentTimeMillis() - l0)/1000.;
+            System.out.println("Training data loaded in " + elapsed + "s");
             List<FeatureVector> evalSet = null;
             if (params.eval != null)
             {
@@ -93,10 +98,11 @@ public class Train
                 System.out.println("Using hinge loss");
                 lossFunction = new HingeLoss();
             }
-            Learner learner = new SGDLearner(lossFunction, params.lambda);
+            Learner learner = new SGDLearner(lossFunction, params.lambda, params.eta0);
 
             FeatureVector fv0 = trainingSet.get(0);
             Model model = learner.create(fv0.length());
+            double totalTrainingElapsed = 0.;
             for (int i = 0; i < params.epochs; ++i)
             {
                 System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
@@ -105,9 +111,9 @@ public class Train
                 double t0 = System.currentTimeMillis();
 
                 learner.trainEpoch(model, trainingSet);
-                double tn = System.currentTimeMillis();
-                System.out.println("Total training time " + (tn-t0)/1000. + "s");
-
+                double elapsedThisEpoch = (System.currentTimeMillis() - t0) /1000.;
+                System.out.println("Epoch training time " + elapsedThisEpoch + "s");
+                totalTrainingElapsed += elapsedThisEpoch;
 
                 learner.eval(model, trainingSet, metrics);
                 showMetrics(metrics, "Training Set Eval Metrics");
@@ -120,6 +126,7 @@ public class Train
                 }
             }
 
+            System.out.println("Total training time " + totalTrainingElapsed + "s");
             if (params.model != null)
             {
                 model.save(new FileOutputStream(params.model));

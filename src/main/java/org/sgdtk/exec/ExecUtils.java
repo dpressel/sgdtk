@@ -1,6 +1,9 @@
 package org.sgdtk.exec;
 
+import org.sgdtk.FeatureVector;
 import org.sgdtk.LazyFeatureDictionaryEncoder;
+import org.sgdtk.Offset;
+import org.sgdtk.UnsafeMemory;
 import org.sgdtk.struct.SequenceProvider;
 import org.sgdtk.fileio.CONLLFileSentenceProvider;
 import org.sgdtk.fileio.SequenceToFeatures;
@@ -8,6 +11,7 @@ import org.sgdtk.struct.*;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.util.*;
 
 /**
@@ -17,6 +21,82 @@ import java.util.*;
  */
 public final class ExecUtils
 {
+
+    public static int nextPowerOf2(int n)
+    {
+        n--;
+        n |= n >> 1;
+        n |= n >> 2;
+        n |= n >> 4;
+        n |= n >> 8;
+        n |= n >> 16;
+        n++;
+        return n;
+    }
+    public static FeatureVector readFeatureVector(String fileName, byte[] buffer) throws IOException
+    {
+
+        RandomAccessFile raf = null;
+        try
+        {
+            raf = new RandomAccessFile(fileName, "r");
+            raf.read(buffer);
+            raf.close();
+            return readFeatureVectorFromBuffer(buffer);
+        }
+        catch (IOException e)
+        {
+            if (raf != null)
+            {
+                raf.close();
+            }
+            throw e;
+        }
+    }
+
+    public static FeatureVector readFeatureVectorFromBuffer(byte[] buffer)
+    {
+        UnsafeMemory memory = new UnsafeMemory(buffer);
+        int fvLength = memory.getInt();
+
+        double y = memory.getDouble();
+        FeatureVector fv = new FeatureVector(y, fvLength);
+        int sparseSz = memory.getInt();
+
+        for (int i = 0; i < sparseSz; ++i)
+        {
+            fv.add(new Offset(memory.getInt(), memory.getDouble()));
+        }
+        return fv;
+    }
+
+    public static int getByteSizeForFeatureVector(int maxNonZeroOffset)
+    {
+        int part = UnsafeMemory.SIZE_OF_DOUBLE + UnsafeMemory.SIZE_OF_INT;
+        int total = part + UnsafeMemory.SIZE_OF_INT + maxNonZeroOffset * part;
+        return total;
+    }
+
+    public static UnsafeMemory writeFeatureVectorToBuffer(FeatureVector fv, byte[] buffer)
+    {
+        List<Offset> offsets = fv.getNonZeroOffsets();
+
+        int total = getByteSizeForFeatureVector(offsets.size());
+        assert( total < buffer.length );
+        UnsafeMemory memory = new UnsafeMemory(buffer);
+        memory.putInt(fv.length());
+        memory.putDouble(fv.getY());
+
+        int sz = offsets.size();
+        memory.putInt(sz);
+        for (int i = 0; i < sz; ++i)
+        {
+            Offset offset = offsets.get(i);
+            memory.putInt(offset.index);
+            memory.putDouble(offset.value);
+        }
+        return memory;
+    }
 
     /**
      * Load up a list of feature vectors from the file provided.
@@ -99,4 +179,6 @@ public final class ExecUtils
 
         return new JointFixedFeatureNameEncoder(ftable, minValue, attestedLabels);
     }
+
+
 }

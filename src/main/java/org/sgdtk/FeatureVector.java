@@ -1,5 +1,10 @@
 package org.sgdtk;
 
+import sun.misc.Unsafe;
+
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
