@@ -116,6 +116,8 @@ public class TrainOverlapped
 
             Learner learner = new SGDLearner(lossFunction, params.lambda, params.eta0);
 
+            SVMLightFileFeatureProvider fileReader = new SVMLightFileFeatureProvider();
+
             Model model = learner.create(dims.width);
             // Now start a thread for File IO, and then pull data until we hit the number of epochs
             File cacheFile = new File(params.train + ".cache");
@@ -124,7 +126,7 @@ public class TrainOverlapped
             trainEx.initialize(learner, model, params.epochs, cacheFile, params.bufferSize);
             trainEx.start();
 
-            SVMLightFileFeatureProvider fileReader = new SVMLightFileFeatureProvider(dims.width);
+
             fileReader.open(trainFile);
             FeatureVectorProducer fvp = new FeatureVectorProducer(fileReader, trainEx);
 

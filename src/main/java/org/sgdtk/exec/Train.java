@@ -42,12 +42,6 @@ public class Train
         @Parameter(description = "Number of epochs", names = {"--epochs", "-epochs"})
         public Integer epochs = 5;
 
-        @Parameter(description = "Number of examples", names = {"--ntex", "-x"})
-        public Integer numTrainExamples;
-
-        @Parameter(description = "Width of feature vector", names = {"--wfv", "w"})
-        public Integer widthFV;
-
 	}
 
 	public static void main(String[] args)
@@ -59,17 +53,8 @@ public class Train
             jc.parse();
 
             File trainFile = new File(params.train);
-            SVMLightFileFeatureProvider.Dims dims;
-            if (params.widthFV == null)
-            {
-                dims = SVMLightFileFeatureProvider.findDims(trainFile);
-                System.out.println("Dims: " + dims.height + " x " + dims.width);
-            }
-            else
-            {
-                dims = new SVMLightFileFeatureProvider.Dims(params.widthFV, 0);
-            }
-            SVMLightFileFeatureProvider reader = new SVMLightFileFeatureProvider(dims.width);
+
+            SVMLightFileFeatureProvider reader = new SVMLightFileFeatureProvider();
 
             long l0 = System.currentTimeMillis();
             List<FeatureVector> trainingSet = reader.load(trainFile);
@@ -100,8 +85,9 @@ public class Train
             }
             Learner learner = new SGDLearner(lossFunction, params.lambda, params.eta0);
 
-            FeatureVector fv0 = trainingSet.get(0);
-            Model model = learner.create(fv0.length());
+            int vSz = reader.getLargestVectorSeen();
+            System.out.println("Creating model with vector of size " + vSz);
+            Model model = learner.create(vSz);
             double totalTrainingElapsed = 0.;
             for (int i = 0; i < params.epochs; ++i)
             {

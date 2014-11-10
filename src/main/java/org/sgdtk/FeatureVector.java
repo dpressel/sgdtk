@@ -18,27 +18,22 @@ public class FeatureVector
 
     private final double y;
 
-    private final int size;
-
     /**
      * Constructor for feature vectors that are ground truth
      * @param y label
-     * @param size feature vector width
      */
-    public FeatureVector(double y, int size)
+    public FeatureVector(double y)
     {
         this.y = y;
-        this.size = size;
         this.offsets = new ArrayList<Offset>();
     }
 
     /**
      * Constructor for feature vectors that are not ground truth
-     * @param size width of vector
      */
-    public FeatureVector(int size)
+    public FeatureVector()
     {
-        this(0., size);
+        this(0.);
     }
 
     /**
@@ -56,7 +51,8 @@ public class FeatureVector
      */
     public int length()
     {
-        return size;
+        int sz = offsets.size();
+        return sz == 0 ? 0: (offsets.get(sz - 1).index + 1);
     }
 
     // Thankfully, this is not necessary as its implemented

@@ -15,4 +15,6 @@ public interface FeatureProvider
      * @throws IOException
      */
     public FeatureVector next() throws IOException;
+
+    public int getLargestVectorSeen();
 }

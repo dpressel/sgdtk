@@ -24,6 +24,14 @@ import java.util.List;
  */
 public class SVMLightFileFeatureProvider implements FeatureProvider
 {
+    int largestVectorSeen = 0;
+
+    @Override
+    public int getLargestVectorSeen()
+    {
+        return largestVectorSeen;
+    }
+
     public static class Dims
     {
         public final int width;
@@ -77,6 +85,11 @@ public class SVMLightFileFeatureProvider implements FeatureProvider
         this.maxFeatures = maxFeatures;
     }
 
+    public SVMLightFileFeatureProvider()
+    {
+        this(0);
+    }
+
     final int maxFeatures;
 
     BufferedReader reader;
@@ -88,6 +101,7 @@ public class SVMLightFileFeatureProvider implements FeatureProvider
      */
     public void open(File file) throws IOException
     {
+        //largestVectorSeen = 0;
         reader = new BufferedReader(new FileReader(file));
     }
 
@@ -147,12 +161,13 @@ public class SVMLightFileFeatureProvider implements FeatureProvider
         List<String> strings = Arrays.asList(line.split(" "));
         double label = Double.valueOf(strings.get(0));
 
-        FeatureVector fv = new FeatureVector(label, lastIdxTotal + 1);
+        FeatureVector fv = new FeatureVector(label);
         for (int i = 1, sz = strings.size(); i < sz; ++i)
         {
             String [] tok = strings.get(i).split(":");
             int idx = Integer.valueOf(tok[0]);
-            if (idx > lastIdxTotal)
+            largestVectorSeen = Math.max(largestVectorSeen, idx + 1);
+            if (lastIdxTotal > 0 && idx > lastIdxTotal)
                 continue;
             double value = Double.valueOf(tok[1]);
             fv.add(new Offset(idx, value));
