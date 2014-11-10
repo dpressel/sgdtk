@@ -121,7 +121,7 @@ public class RingBufferTrainingExecutor implements TrainingExecutor
                 lastTime = tNow;
                 int currentEpoch1Based = currentEpoch.incrementAndGet();
 
-                log.info("Epoch " + currentEpoch1Based + " completed in " + diff / 1000. + "s");
+                log.info("Epoch " + currentEpoch1Based + " completed in " + diff + "s");
                 return;
 
             }

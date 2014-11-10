@@ -92,7 +92,6 @@ public class SGDLearner implements Learner
         for (FeatureVector fv : trainingExamples)
         {
             trainOne(model, fv);
-
         }
 
         LinearModel lm = (LinearModel)model;

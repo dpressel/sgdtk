@@ -1,10 +1,5 @@
 package org.sgdtk;
 
-import sun.misc.Unsafe;
-
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -43,7 +38,7 @@ public class FeatureVector
      */
     public FeatureVector(int size)
     {
-        this(-1, size);
+        this(0., size);
     }
 
     /**
@@ -81,7 +76,7 @@ public class FeatureVector
     }
 
     /**
-     * Add a new ofset to the feature vector (must not exceed size)
+     * Add a new offset to the feature vector (must not exceed size)
      * @param offset
      */
     public void add(Offset offset)

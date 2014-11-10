@@ -63,7 +63,7 @@ public class Train
             if (params.widthFV == null)
             {
                 dims = SVMLightFileFeatureProvider.findDims(trainFile);
-                System.out.println("Dims: " + dims.width + " x " + dims.height);
+                System.out.println("Dims: " + dims.height + " x " + dims.width);
             }
             else
             {

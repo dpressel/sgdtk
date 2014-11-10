@@ -4,6 +4,8 @@ import java.io.IOException;
 
 /**
  * Streaming interface for getting {@link org.sgdtk.FeatureVector}
+ *
+ * @author dpressel
  */
 public interface FeatureProvider
 {
