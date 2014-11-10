@@ -94,7 +94,7 @@ public class LinearModel implements Model
      * @return
      */
     @Override
-    public double predict(FeatureVector fv)
+    public final double predict(FeatureVector fv)
     {
 
 
@@ -112,7 +112,7 @@ public class LinearModel implements Model
      * Get wdiv
      * @return wdiv
      */
-    public double getWdiv()
+    public final double getWdiv()
     {
         return wdiv;
     }
@@ -121,7 +121,7 @@ public class LinearModel implements Model
      * Set wdiv
      * @param wdiv
      */
-    public void setWdiv(double wdiv)
+    public final void setWdiv(double wdiv)
     {
         this.wdiv = wdiv;
     }
@@ -130,7 +130,7 @@ public class LinearModel implements Model
      * Get wbias
      * @return wbias
      */
-    public double getWbias()
+    public final double getWbias()
     {
         return wbias;
     }
@@ -139,7 +139,7 @@ public class LinearModel implements Model
      * Set wbias
      * @param wbias
      */
-    public void setWbias(double wbias)
+    public final void setWbias(double wbias)
     {
         this.wbias = wbias;
     }
@@ -157,7 +157,7 @@ public class LinearModel implements Model
      * Magnitude of weight vector
      * @return mag
      */
-    public double mag()
+    public final double mag()
     {
         double dotProd = CollectionsManip.dot(weights, weights);
         return dotProd / wdiv / wdiv;
@@ -167,7 +167,7 @@ public class LinearModel implements Model
      * Scale the weight vector inplace
      * @param scalar Scalar to use
      */
-    public void scaleInplace(double scalar)
+    public final void scaleInplace(double scalar)
     {
         CollectionsManip.scaleInplace(weights, scalar);
     }
@@ -177,7 +177,7 @@ public class LinearModel implements Model
      * @param i weight index
      * @param update value to add
      */
-    public void addInplace(int i, double update)
+    public final void addInplace(int i, double update)
     {
         weights[i] += update;
     }

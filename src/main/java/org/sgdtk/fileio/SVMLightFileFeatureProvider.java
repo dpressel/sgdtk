@@ -8,9 +8,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 /**
  * This reads in Sparse SVM light/Libsvm format data a stream (via a pull).
@@ -99,7 +97,7 @@ public class SVMLightFileFeatureProvider implements FeatureProvider
      * @param file An SVM light type file
      * @throws IOException
      */
-    public void open(File file) throws IOException
+    public final void open(File file) throws IOException
     {
         //largestVectorSeen = 0;
         reader = new BufferedReader(new FileReader(file));
@@ -109,7 +107,7 @@ public class SVMLightFileFeatureProvider implements FeatureProvider
      * Close the currently loaded file
      * @throws IOException
      */
-    public void close() throws IOException
+    public final void close() throws IOException
     {
         reader.close();
     }
@@ -122,7 +120,7 @@ public class SVMLightFileFeatureProvider implements FeatureProvider
      * @return One feature vector per line in the file
      * @throws IOException
      */
-    public List<FeatureVector> load(File file) throws IOException
+    public final List<FeatureVector> load(File file) throws IOException
     {
 
         open(file);
@@ -149,31 +147,33 @@ public class SVMLightFileFeatureProvider implements FeatureProvider
      * @return The next feature vector, or null, if we are out of lines
      * @throws IOException
      */
-    public FeatureVector next() throws IOException
+    public final FeatureVector next() throws IOException
     {
-        String line = reader.readLine();
+        final String line = reader.readLine();
+
         if (line == null)
         {
             return null;
         }
-        int lastIdxTotal = maxFeatures - 1;
 
-        List<String> strings = Arrays.asList(line.split(" "));
-        double label = Double.valueOf(strings.get(0));
-
-        FeatureVector fv = new FeatureVector(label);
-        for (int i = 1, sz = strings.size(); i < sz; ++i)
+        // This appears to be much faster than
+        final StringTokenizer tokenizer = new StringTokenizer(line, " ");
+        final int lastIdxTotal = maxFeatures - 1;
+        final double label = Double.valueOf(tokenizer.nextToken());
+        final FeatureVector fv = new FeatureVector(label);
+        while(tokenizer.hasMoreTokens())
         {
-            String [] tok = strings.get(i).split(":");
-            int idx = Integer.valueOf(tok[0]);
+
+            String subVec = tokenizer.nextToken();
+            final int to = subVec.indexOf(':');
+            final int idx = Integer.valueOf(subVec.substring(0, to));
             largestVectorSeen = Math.max(largestVectorSeen, idx + 1);
             if (lastIdxTotal > 0 && idx > lastIdxTotal)
                 continue;
-            double value = Double.valueOf(tok[1]);
+
+            final double value = Double.valueOf(subVec.substring(to+1));
             fv.add(new Offset(idx, value));
-
         }
-
 
         return fv;
     }

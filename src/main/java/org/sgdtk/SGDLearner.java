@@ -65,7 +65,7 @@ public class SGDLearner implements Learner
      * @return
      */
     @Override
-    public Model create(int wlength)
+    public final Model create(int wlength)
     {
         this.numSeenTotal = 0;
         LinearModel lm = new LinearModel(wlength, 1., 0.);
@@ -80,7 +80,7 @@ public class SGDLearner implements Learner
      * @return
      */
     @Override
-    public Model trainEpoch(Model model, List<FeatureVector> trainingExamples)
+    public final Model trainEpoch(Model model, List<FeatureVector> trainingExamples)
     {
         // Check if we have eta set already
         if (eta0 <= 0)
@@ -101,7 +101,7 @@ public class SGDLearner implements Learner
 
 
     @Override
-    public void trainOne(Model model, FeatureVector fv)
+    public final void trainOne(Model model, FeatureVector fv)
     {
         LinearModel lm = (LinearModel)model;
         double eta = eta0 / (1 + lambda * eta0 * numSeenTotal);
@@ -111,7 +111,7 @@ public class SGDLearner implements Learner
         ++numSeenTotal;
     }
 
-    private void trainOneWithEta(LinearModel lm, FeatureVector fv, double eta)
+    private final void trainOneWithEta(LinearModel lm, FeatureVector fv, double eta)
     {
         double y = fv.getY();
         double fx = lm.predict(fv);
@@ -145,7 +145,7 @@ public class SGDLearner implements Learner
     }
 
     @Override
-    public void preprocess(Model model, List<FeatureVector> sample)
+    public final void preprocess(Model model, List<FeatureVector> sample)
     {
         double lowEta = LOW_ETA_0;
         double lowCost = evalEta(model, sample, lowEta);
@@ -196,7 +196,7 @@ public class SGDLearner implements Learner
      * @return
      */
     @Override
-    public double evalOne(Model model, FeatureVector fv, Metrics metrics)
+    public final double evalOne(Model model, FeatureVector fv, Metrics metrics)
     {
 
         double y = fv.getY();
@@ -214,7 +214,7 @@ public class SGDLearner implements Learner
      * @param metrics Metrics to add to
      */
     @Override
-    public void eval(Model model, List<FeatureVector> testingExamples, Metrics metrics)
+    public final void eval(Model model, List<FeatureVector> testingExamples, Metrics metrics)
     {
         for (FeatureVector fv : testingExamples)
         {

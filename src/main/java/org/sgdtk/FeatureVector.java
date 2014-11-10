@@ -40,7 +40,7 @@ public class FeatureVector
      * Get all non-zero values and their indices
      * @return
      */
-    public List<Offset> getNonZeroOffsets()
+    public final List<Offset> getNonZeroOffsets()
     {
         return offsets;
     }
@@ -49,7 +49,7 @@ public class FeatureVector
      * Length of feature vector
      * @return
      */
-    public int length()
+    public final int length()
     {
         int sz = offsets.size();
         return sz == 0 ? 0: (offsets.get(sz - 1).index + 1);
@@ -66,7 +66,7 @@ public class FeatureVector
      * Get the label
      * @return return label
      */
-    public double getY()
+    public final double getY()
     {
         return y;
     }
@@ -75,7 +75,7 @@ public class FeatureVector
      * Add a new offset to the feature vector (must not exceed size)
      * @param offset
      */
-    public void add(Offset offset)
+    public final void add(Offset offset)
     {
         this.offsets.add(offset);
     }
