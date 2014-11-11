@@ -131,10 +131,11 @@ public class SGDLearner implements Learner
         double d = lossFunction.dLoss(fx, y);
         double disp = -eta * d * wdiv;
 
-        for (Offset offset : fv.getNonZeroOffsets())
-        {
-            lm.addInplace(offset.index, offset.value * disp);
-        }
+        lm.add(fv, disp);
+        //for (Offset offset : fv.getNonZeroOffsets())
+        //{
+        //    lm.addInplace(offset.index, offset.value * disp);
+        //}
 
         double etab = eta * 0.01;
         double wbias = lm.getWbias();

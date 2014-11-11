@@ -5,6 +5,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.List;
 
 /**
  * Linear model for classification
@@ -172,13 +173,20 @@ public class LinearModel implements Model
         CollectionsManip.scaleInplace(weights, scalar);
     }
 
+    public final void add(FeatureVector fv, double disp)
+    {
+        for (Offset offset : fv.getNonZeroOffsets())
+        {
+            weights[offset.index] += offset.value * disp;
+        }
+    }
     /**
      * Update the weight at i
      * @param i weight index
      * @param update value to add
      */
-    public final void addInplace(int i, double update)
-    {
-        weights[i] += update;
-    }
+    //public final void addInplace(int i, double update)
+    //{
+    //    weights[i] += update;
+    //}
 }
