@@ -64,14 +64,11 @@ public class TrainOverlapped
         @Parameter(description = "eta0, if not set, try and preprocess to find", names = {"--eta0", "-e0"}, required = true)
         public Double eta0;
 
-        @Parameter(description = "Number of examples", names = {"--ntex", "-x"})
-        public Integer numTrainExamples;
-
         @Parameter(description = "Width of feature vector", names = {"--wfv", "w"})
         public Integer widthFV;
 
         @Parameter(description = "Ring Buffer size", names = {"--buf", "-b"})
-        public Integer bufferSize = 100;
+        public Integer bufferSize = 10000;
 
 	}
 
@@ -122,7 +119,7 @@ public class TrainOverlapped
             // Now start a thread for File IO, and then pull data until we hit the number of epochs
             File cacheFile = new File(params.train + ".cache");
 
-            TrainingExecutor trainEx = new RingBufferTrainingExecutor();
+            TrainingExecutor trainEx = new RingBufferTrainingExecutor(RingBufferTrainingExecutor.Strategy.BUSY);
             trainEx.initialize(learner, model, params.epochs, cacheFile, params.bufferSize);
             trainEx.start();
 

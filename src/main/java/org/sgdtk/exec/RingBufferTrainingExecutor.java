@@ -1,9 +1,8 @@
 package org.sgdtk.exec;
 
-import com.lmax.disruptor.EventFactory;
-import com.lmax.disruptor.EventHandler;
-import com.lmax.disruptor.RingBuffer;
+import com.lmax.disruptor.*;
 import com.lmax.disruptor.dsl.Disruptor;
+import com.lmax.disruptor.dsl.ProducerType;
 import org.sgdtk.FeatureVector;
 import org.sgdtk.Learner;
 import org.sgdtk.Model;
@@ -33,6 +32,9 @@ public class RingBufferTrainingExecutor implements TrainingExecutor
     MessageEventHandler handler;
     int numEpochs;
     private File cacheFile;
+    private Strategy strategy;
+
+    enum Strategy { YIELD, BUSY };
 
     @Override
     public int getNumEpochs()
@@ -51,6 +53,15 @@ public class RingBufferTrainingExecutor implements TrainingExecutor
      */
     public RingBufferTrainingExecutor()
     {
+        this(Strategy.YIELD);
+    }
+
+    /**
+     * Create one
+     */
+    public RingBufferTrainingExecutor(Strategy strategy)
+    {
+        this.strategy = strategy;
     }
 
     /**
@@ -161,7 +172,8 @@ public class RingBufferTrainingExecutor implements TrainingExecutor
         this.numEpochs = numEpochs;
         executor = Executors.newSingleThreadExecutor();
         MessageEventFactory factory = new MessageEventFactory();
-        disruptor = new Disruptor<MessageEvent>(factory, ExecUtils.nextPowerOf2(bufferSize), executor);
+        WaitStrategy waitStrategy = (strategy == Strategy.YIELD) ? new YieldingWaitStrategy(): new BusySpinWaitStrategy();
+        disruptor = new Disruptor<MessageEvent>(factory, ExecUtils.nextPowerOf2(bufferSize), executor, ProducerType.SINGLE, waitStrategy);
         handler = new MessageEventHandler(learner, model);
         disruptor.handleEventsWith(handler);
         this.cacheFile = cacheFile;
