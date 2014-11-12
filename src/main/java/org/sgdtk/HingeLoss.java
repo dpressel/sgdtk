@@ -28,8 +28,6 @@ public class HingeLoss implements Loss
     @Override
     public final double dLoss(double p, double y)
     {
-        if (loss(p, y) == 0)
-            return 0;
-        return -y;
+        return (Math.max(0, 1 - p * y) == 0) ? 0 : -y;
     }
 }

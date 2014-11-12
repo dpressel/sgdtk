@@ -5,7 +5,6 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.List;
 
 /**
  * Linear model for classification
@@ -95,10 +94,8 @@ public class LinearModel implements Model
      * @return
      */
     @Override
-    public final double predict(FeatureVector fv)
+    public final double predict(final FeatureVector fv)
     {
-
-
         double dot = 0.;
         for (Offset offset : fv.getNonZeroOffsets())
         {

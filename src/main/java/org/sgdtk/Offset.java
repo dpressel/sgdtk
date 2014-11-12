@@ -7,15 +7,16 @@ package org.sgdtk;
  */
 public class Offset
 {
-    public int index;
-    public double value;
+    public final int index;
+    public final double value;
 
     /**
      * Default constructor
      */
     public Offset()
     {
-        this(0, 0.);
+        this.index = 0;
+        this.value = 0.;
     }
 
     /**
