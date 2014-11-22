@@ -16,7 +16,7 @@ public class FeatureVector
 
     private List<Offset> offsets;
 
-    private final double y;
+    private double y;
 
     /**
      * Constructor for feature vectors that are ground truth
@@ -66,11 +66,15 @@ public class FeatureVector
      * Get the label
      * @return return label
      */
-    public final double getY()
+    public double getY()
     {
         return y;
     }
 
+    public void setY(double y)
+    {
+        this.y = y;
+    }
     /**
      * Add a new offset to the feature vector (must not exceed size)
      * @param offset
