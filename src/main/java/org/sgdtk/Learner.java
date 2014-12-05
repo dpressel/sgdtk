@@ -33,9 +33,8 @@ public interface Learner
      * @param model The model to use for evaluation
      * @param fv The feature vector
      * @param metrics Metrics to add to
-     * @return labels or probabilities from learner for this example
      */
-    double evalOne(Model model, FeatureVector fv, Metrics metrics);
+    void evalOne(Model model, FeatureVector fv, Metrics metrics);
 
     /**
      * Evaluate a set of examples

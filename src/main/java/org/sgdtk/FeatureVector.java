@@ -5,8 +5,8 @@ import java.util.List;
 
 /**
  * Representation of feature vector in a sparse layout.
- *
- * TODO: possibly roll the raw content in optionally?
+ * For binary data, the y label should be -1/1.  For multicategory
+ * data, the numbers should enumerate from 1 to N
  *
  * @author dpressel
  *
@@ -16,13 +16,13 @@ public class FeatureVector
 
     private List<Offset> offsets;
 
-    private double y;
+    private int y;
 
     /**
      * Constructor for feature vectors that are ground truth
      * @param y label
      */
-    public FeatureVector(double y)
+    public FeatureVector(int y)
     {
         this.y = y;
         this.offsets = new ArrayList<Offset>();
@@ -33,7 +33,7 @@ public class FeatureVector
      */
     public FeatureVector()
     {
-        this(0.);
+        this(0);
     }
 
     /**
@@ -66,12 +66,12 @@ public class FeatureVector
      * Get the label
      * @return return label
      */
-    public double getY()
+    public int getY()
     {
         return y;
     }
 
-    public void setY(double y)
+    public void setY(int y)
     {
         this.y = y;
     }

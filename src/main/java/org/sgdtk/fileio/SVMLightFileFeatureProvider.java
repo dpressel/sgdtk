@@ -159,7 +159,7 @@ public class SVMLightFileFeatureProvider implements FeatureProvider
         // This appears to be much faster than
         final StringTokenizer tokenizer = new StringTokenizer(line, " ");
         final int lastIdxTotal = maxFeatures - 1;
-        final double label = Double.valueOf(tokenizer.nextToken());
+        final int label = Integer.valueOf(tokenizer.nextToken());
         final FeatureVector fv = new FeatureVector(label);
         while(tokenizer.hasMoreTokens())
         {

@@ -2,24 +2,11 @@ package org.sgdtk.exec;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
-import com.lmax.disruptor.EventFactory;
-import com.lmax.disruptor.EventHandler;
-import com.lmax.disruptor.RingBuffer;
-import com.lmax.disruptor.dsl.Disruptor;
 import org.sgdtk.*;
 import org.sgdtk.fileio.SVMLightFileFeatureProvider;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.RandomAccessFile;
-import java.util.List;
-import java.util.concurrent.Executor;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Train a classifier using some loss function using SGD.  Unlike Train, File IO is overlapped with processing
@@ -70,6 +57,8 @@ public class TrainOverlapped
         @Parameter(description = "Ring Buffer size", names = {"--buf", "-b"})
         public Integer bufferSize = 10000;
 
+        @Parameter(description = "Number of classes", names = {"--nc"})
+        public Integer numClasses = 2;
 	}
 
 	public static void main(String[] args)
@@ -132,9 +121,6 @@ public class TrainOverlapped
             double elapsed = (System.currentTimeMillis() - t0)/1000.;
 
             System.out.println("Overlapped training completed in " + elapsed + "s");
-
-            LinearModel lm = (LinearModel)model;
-            System.out.println("wnorm=" + lm.mag());
 
             trainEx.join();
 

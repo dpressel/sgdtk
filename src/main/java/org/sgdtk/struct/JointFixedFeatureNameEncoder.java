@@ -19,7 +19,7 @@ import java.util.*;
  * so we can get the exact same encodings back
  * <p>
  * In the second use-case, we have already trained our data, and persisted the feature encodings to a file, and now we
- * want to classify some data.  Here we just call the default constructor, and then {@link #load(java.io.InputStream)}
+ * want to score some data.  Here we just call the default constructor, and then {@link #load(java.io.InputStream)}
  * the encoder again from the file that was saved in the training.
  *
  * @see org.sgdtk.exec.ExecUtils

@@ -174,6 +174,7 @@ public class SGDLearner implements Learner
         }
         eta0 = lowEta;
 
+        log.info("selected eta0=" + eta0);
 
     }
 
@@ -197,7 +198,7 @@ public class SGDLearner implements Learner
      * @return
      */
     @Override
-    public final double evalOne(Model model, FeatureVector fv, Metrics metrics)
+    public final void evalOne(Model model, FeatureVector fv, Metrics metrics)
     {
 
         double y = fv.getY();
@@ -205,7 +206,7 @@ public class SGDLearner implements Learner
         double loss = lossFunction.loss(fx, y);
         double error = (fx * y <= 0) ? 1 : 0;
         metrics.add(loss, error);
-        return fx;
+        ;
     }
 
     /**

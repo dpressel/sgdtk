@@ -7,6 +7,8 @@ import org.sgdtk.*;
 import org.sgdtk.SGDLearner;
 import org.sgdtk.fileio.SVMLightFileFeatureProvider;
 import org.sgdtk.SquareLoss;
+import org.sgdtk.MultiClassSGDLearner;
+
 import java.io.*;
 import java.util.List;
 
@@ -41,6 +43,9 @@ public class Train
 
         @Parameter(description = "Number of epochs", names = {"--epochs", "-epochs"})
         public Integer epochs = 5;
+
+        @Parameter(description = "Number of classes", names = {"--nc"})
+        public Integer numClasses = 2;
 
 	}
 
@@ -83,7 +88,9 @@ public class Train
                 System.out.println("Using hinge loss");
                 lossFunction = new HingeLoss();
             }
-            Learner learner = new SGDLearner(lossFunction, params.lambda, params.eta0);
+
+            Learner learner = params.numClasses > 2 ? new MultiClassSGDLearner(params.numClasses, lossFunction, params.lambda, params.eta0) :
+                    new SGDLearner(lossFunction, params.lambda, params.eta0);
 
             int vSz = reader.getLargestVectorSeen();
             System.out.println("Creating model with vector of size " + vSz);

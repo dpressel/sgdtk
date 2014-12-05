@@ -1,9 +1,6 @@
 package org.sgdtk;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.IOException;
+
+import java.io.*;
 import java.util.Arrays;
 
 /**
@@ -17,8 +14,26 @@ public class LinearModel implements Model
     private double wdiv;
     private double wbias;
 
+    @Override
+    public void load(File file) throws IOException
+    {
+        load(new FileInputStream(file));
+    }
+
+    /**
+     * Save model to a file
+     *
+     * @param file
+     * @throws IOException
+     */
+    public void save(File file) throws IOException
+    {
+        save(new FileOutputStream(file));
+    }
+
     /**
      * Load from stream
+     *
      * @param inputStream source
      * @throws IOException
      */
@@ -28,7 +43,7 @@ public class LinearModel implements Model
         ObjectInputStream objectInputStream = new ObjectInputStream(inputStream);
         wdiv = objectInputStream.readDouble();
         wbias = objectInputStream.readDouble();
-        int sz = (int)objectInputStream.readLong();
+        int sz = (int) objectInputStream.readLong();
         weights = new double[sz];
         for (int i = 0; i < sz; ++i)
         {
@@ -40,6 +55,7 @@ public class LinearModel implements Model
 
     /**
      * Save to stream
+     *
      * @param outputStream target
      * @throws IOException
      */
@@ -49,7 +65,7 @@ public class LinearModel implements Model
         ObjectOutputStream objectOutputStream = new ObjectOutputStream(outputStream);
         objectOutputStream.writeDouble(wdiv);
         objectOutputStream.writeDouble(wbias);
-        long sz = (long)weights.length;
+        long sz = (long) weights.length;
         objectOutputStream.writeLong(sz);
         for (int i = 0; i < weights.length; ++i)
         {
@@ -60,9 +76,10 @@ public class LinearModel implements Model
 
     /**
      * Create empty but initialized model
+     *
      * @param wlength The length of the feature vector
-     * @param wdiv scaling
-     * @param wbias bias
+     * @param wdiv    scaling
+     * @param wbias   bias
      */
     public LinearModel(int wlength, double wdiv, double wbias)
     {
@@ -90,6 +107,7 @@ public class LinearModel implements Model
 
     /**
      * Predict the classification for feature vector
+     *
      * @param fv feature vector
      * @return
      */
@@ -106,8 +124,15 @@ public class LinearModel implements Model
         return dot / wdiv + wbias;
     }
 
+    @Override
+    public double[] score(FeatureVector fv)
+    {
+        return new double[]{predict(fv)};
+    }
+
     /**
      * Get wdiv
+     *
      * @return wdiv
      */
     public final double getWdiv()
@@ -117,6 +142,7 @@ public class LinearModel implements Model
 
     /**
      * Set wdiv
+     *
      * @param wdiv
      */
     public final void setWdiv(double wdiv)
@@ -126,6 +152,7 @@ public class LinearModel implements Model
 
     /**
      * Get wbias
+     *
      * @return wbias
      */
     public final double getWbias()
@@ -135,6 +162,7 @@ public class LinearModel implements Model
 
     /**
      * Set wbias
+     *
      * @param wbias
      */
     public final void setWbias(double wbias)
@@ -144,6 +172,7 @@ public class LinearModel implements Model
 
     /**
      * Create a deep copy of this
+     *
      * @return clone
      */
     public Model prototype()
@@ -153,6 +182,7 @@ public class LinearModel implements Model
 
     /**
      * Magnitude of weight vector
+     *
      * @return mag
      */
     public final double mag()
@@ -163,6 +193,7 @@ public class LinearModel implements Model
 
     /**
      * Scale the weight vector inplace
+     *
      * @param scalar Scalar to use
      */
     public final void scaleInplace(double scalar)

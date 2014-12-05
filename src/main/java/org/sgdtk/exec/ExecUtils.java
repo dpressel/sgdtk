@@ -22,6 +22,12 @@ import java.util.*;
 public final class ExecUtils
 {
 
+    public static double logOddsToProb(double logOdds)
+    {
+        double odds = Math.pow(Math.E, logOdds);
+        return odds / (odds + 1.0);
+    }
+
     public static int nextPowerOf2(int n)
     {
         n--;
@@ -57,7 +63,7 @@ public final class ExecUtils
     public static FeatureVector readFeatureVectorFromBuffer(byte[] buffer)
     {
         UnsafeMemory memory = new UnsafeMemory(buffer);
-        double y = memory.getDouble();
+        int y = memory.getInt();
         FeatureVector fv = new FeatureVector(y);
         int sparseSz = memory.getInt();
 
@@ -82,7 +88,7 @@ public final class ExecUtils
         int total = getByteSizeForFeatureVector(offsets.size());
         assert( total < buffer.length );
         UnsafeMemory memory = new UnsafeMemory(buffer);
-        memory.putDouble(fv.getY());
+        memory.putInt(fv.getY());
 
         int sz = offsets.size();
         memory.putInt(sz);
