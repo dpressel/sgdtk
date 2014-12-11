@@ -10,5 +10,7 @@ The design here is notionally split into two types of learning problems, unstruc
 
 There is now experimental support for fast out-of-core processing, inspired by VW, where a thread loads the data from file, adds it to a ring buffer, and a processor trains the data.  For multiple passes, the data is reincarnated from a cache file (again, like VW) and loaded back onto the ring buffer from the cache.  Its also possible to reuse a cache from previous runs.
 
+There is also added support for OVA multi-class classification, not present in SGD.  The interface follows the same patterns as binary.  In the case of multi-class classification, the labels will not be -1 or 1, but an integer value from 1 ... numClasses stored in the y value of the feature vector.  Each score can be retrieved using the Model.score() function, which is an array where each index into the array represents the class integer value (-1 to make it zero based).
+
 The library was developed and tested in Intellij using Java 8, but can be built, installed and run from Maven and should work on lower Java versions.  The only dependencies in the library currently are JCommander for easy command line parsing, slf4j/logback for logging, and LMAX disruptor for fast contention-free ring buffers.
 
