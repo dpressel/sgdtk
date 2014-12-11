@@ -10,5 +10,5 @@ The design here is notionally split into two types of learning problems, unstruc
 
 There is now experimental support for fast out-of-core processing, inspired by VW, where a thread loads the data from file, adds it to a ring buffer, and a processor trains the data.  For multiple passes, the data is reincarnated from a cache file (again, like VW) and loaded back onto the ring buffer from the cache.  Its also possible to reuse a cache from previous runs.
 
-The library was developed and tested in Intellij using Java 8, but can be built, installed and run from Maven and should work on lower Java versions.  The only dependencies in the library currently are JCommander for easy command line parsing and slf4j/logback for logging.
+The library was developed and tested in Intellij using Java 8, but can be built, installed and run from Maven and should work on lower Java versions.  The only dependencies in the library currently are JCommander for easy command line parsing, slf4j/logback for logging, and LMAX disruptor for fast contention-free ring buffers.
 

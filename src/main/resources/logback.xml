@@ -10,7 +10,7 @@
 <configuration>
   <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
     <encoder>
-      <pattern>%-20d{dd MMM yyyy HH:mm:ss} DUDE [%t][%c] --&gt; %-5p - %m%n</pattern>
+      <pattern>%-20d{dd MMM yyyy HH:mm:ss} [%t][%c] --&gt; %-5p - %m%n</pattern>
     </encoder>
   </appender>
   <logger name="org.sgdtk" additivity="false" level="DEBUG">
