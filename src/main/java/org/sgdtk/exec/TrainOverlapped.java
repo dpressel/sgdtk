@@ -10,17 +10,16 @@ import java.io.FileOutputStream;
 
 /**
  * Train a classifier using some loss function using SGD.  Unlike Train, File IO is overlapped with processing
- *
+ * <p/>
  * This training method is modeled loosely on VW, where the file IO is overlapped (provided by a different
  * thread from the processor).  The way it works: the feeder reads the files in and pushes them onto a RingBuffer
  * (thank you LMAX!) as soon as it reads it.  If the RingBuffer is full, the insertion will block (back-pressure).
- *
+ * <p/>
  * On the first pass through the data, the Learner will process the data from the RingBuffer in a single threaded
  * fashion, and once its done, it will serialize it back to a file, and go to the next feature vector.
- *
+ * <p/>
  * The way its set up right now, you have to guess at eta0 to run the program.  This can be modified by reading a few
  * examples upfront and calling the {@link org.sgdtk.Learner#preprocess(org.sgdtk.Model, java.util.List)} instead
- *
  *
  * @author dpressel
  */
@@ -33,7 +32,7 @@ public class TrainOverlapped
         @Parameter(description = "Training file", names = {"--train", "-t"}, required = true)
         public String train;
 
-    	@Parameter(description = "Testing file", names = {"--eval", "-e"})
+        @Parameter(description = "Testing file", names = {"--eval", "-e"})
         public String eval;
 
         @Parameter(description = "Model to write out", names = {"--model", "-s"})
@@ -59,9 +58,9 @@ public class TrainOverlapped
 
         @Parameter(description = "Number of classes", names = {"--nc"})
         public Integer numClasses = 2;
-	}
+    }
 
-	public static void main(String[] args)
+    public static void main(String[] args)
     {
         try
         {
@@ -100,42 +99,56 @@ public class TrainOverlapped
                 lossFunction = new HingeLoss();
             }
 
-            Learner learner = new SGDLearner(lossFunction, params.lambda, params.eta0);
-
-            SVMLightFileFeatureProvider fileReader = new SVMLightFileFeatureProvider();
-
-            Model model = learner.create(dims.width);
             // Now start a thread for File IO, and then pull data until we hit the number of epochs
             File cacheFile = new File(params.train + ".cache");
 
-            TrainingExecutor trainEx = new RingBufferTrainingExecutor(RingBufferTrainingExecutor.Strategy.BUSY);
-            trainEx.initialize(learner, model, params.epochs, cacheFile, params.bufferSize);
-            trainEx.start();
+
+            Learner learner = params.numClasses > 2 ? new MultiClassSGDLearner(params.numClasses, lossFunction, params.lambda, params.eta0) :
+                    new SGDLearner(lossFunction, params.lambda, params.eta0);
+
+            OverlappedTrainingLifecycle trainingLifecycle = new OverlappedTrainingLifecycle(params.epochs, params.bufferSize, learner, dims.width, cacheFile);
+
+
+            //Learner learner = new SGDLearner(lossFunction, params.lambda, params.eta0);
+
+            SVMLightFileFeatureProvider fileReader = new SVMLightFileFeatureProvider();
 
 
             fileReader.open(trainFile);
-            FeatureVectorProducer fvp = new FeatureVectorProducer(fileReader, trainEx);
 
-            fvp.run();
+            FeatureVector fv;
 
-            double elapsed = (System.currentTimeMillis() - t0)/1000.;
+            //buffer = new byte[262144];
+            while ((fv = fileReader.next()) != null)
+            {
+                trainingLifecycle.add(fv);
+            }
+
+            Model model = trainingLifecycle.finish();
+
+
+            //if (evalSet != null)
+            //{
+            //    learner.eval(model, evalSet, metrics);
+            //    showMetrics(metrics, "Test Set Eval Metrics");
+            //}
+
+            double elapsed = (System.currentTimeMillis() - t0) / 1000.;
 
             System.out.println("Overlapped training completed in " + elapsed + "s");
-
-            trainEx.join();
 
             if (params.model != null)
             {
                 model.save(new FileOutputStream(params.model));
 
             }
-		}
-		catch (Exception ex)
-		{
-			ex.printStackTrace();
-			System.exit(1);
-		}
-	}
+        }
+        catch (Exception ex)
+        {
+            ex.printStackTrace();
+            System.exit(1);
+        }
 
 
+    }
 }

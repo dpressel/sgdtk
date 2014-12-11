@@ -16,13 +16,14 @@ public class FeatureVector
 
     private List<Offset> offsets;
 
-    private int y;
+    // http://stackoverflow.com/questions/3793838/which-is-the-first-integer-that-an-ieee-754-float-is-incapable-of-representing-e
+    private double y;
 
     /**
      * Constructor for feature vectors that are ground truth
      * @param y label
      */
-    public FeatureVector(int y)
+    public FeatureVector(double y)
     {
         this.y = y;
         this.offsets = new ArrayList<Offset>();
@@ -66,12 +67,12 @@ public class FeatureVector
      * Get the label
      * @return return label
      */
-    public int getY()
+    public double getY()
     {
         return y;
     }
 
-    public void setY(int y)
+    public void setY(double y)
     {
         this.y = y;
     }

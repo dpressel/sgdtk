@@ -38,6 +38,7 @@ public interface TrainingExecutor
      */
     void join();
 
+    void kill();
     /**
      * Get the number of epochs
      * @return Number of epochs

@@ -63,7 +63,7 @@ public final class ExecUtils
     public static FeatureVector readFeatureVectorFromBuffer(byte[] buffer)
     {
         UnsafeMemory memory = new UnsafeMemory(buffer);
-        int y = memory.getInt();
+        double y = memory.getDouble();
         FeatureVector fv = new FeatureVector(y);
         int sparseSz = memory.getInt();
 
@@ -88,7 +88,7 @@ public final class ExecUtils
         int total = getByteSizeForFeatureVector(offsets.size());
         assert( total < buffer.length );
         UnsafeMemory memory = new UnsafeMemory(buffer);
-        memory.putInt(fv.getY());
+        memory.putDouble(fv.getY());
 
         int sz = offsets.size();
         memory.putInt(sz);

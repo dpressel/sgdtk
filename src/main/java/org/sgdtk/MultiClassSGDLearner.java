@@ -93,7 +93,7 @@ public class MultiClassSGDLearner implements Learner
     {
         MultiClassLinearModel mclm = (MultiClassLinearModel)model;
 
-        int yReal = fv.getY();
+        double yReal = fv.getY();
         for (int i = 0; i < mclm.models.length; ++i)
         {
             boolean isCorrect = (i + 1) == yReal;
@@ -106,7 +106,7 @@ public class MultiClassSGDLearner implements Learner
     @Override
     public void preprocess(Model model, List<FeatureVector> sample)
     {
-        int [] yReal = new int[sample.size()];
+        double [] yReal = new double[sample.size()];
         for (int i = 0; i < yReal.length; ++i)
         {
             yReal[i] = sample.get(i).getY();
@@ -136,7 +136,7 @@ public class MultiClassSGDLearner implements Learner
     {
         MultiClassLinearModel mclm = (MultiClassLinearModel)model;
 
-        int yReal = fv.getY();
+        double yReal = fv.getY();
 
         for (int i = 0; i < mclm.models.length; ++i)
         {

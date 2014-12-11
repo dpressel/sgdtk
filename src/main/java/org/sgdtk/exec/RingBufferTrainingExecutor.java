@@ -34,7 +34,7 @@ public class RingBufferTrainingExecutor implements TrainingExecutor
     private File cacheFile;
     private Strategy strategy;
 
-    enum Strategy { YIELD, BUSY };
+    public enum Strategy { YIELD, BUSY };
 
     @Override
     public int getNumEpochs()
@@ -211,6 +211,22 @@ public class RingBufferTrainingExecutor implements TrainingExecutor
 
     }
 
+    @Override
+    public void kill()
+    {
+        disruptor.shutdown();
+        executor.shutdownNow();
+        try
+        {
+            executor.awaitTermination(100, TimeUnit.MICROSECONDS);
+        }
+        catch (InterruptedException intEx)
+        {
+
+        }
+
+    }
+
     /**
      * Pretty much busy-wait our way through this check seeing if all epochs have passed yet
      * Then shutdown the disruptor and our ExecutorService.
@@ -231,15 +247,6 @@ public class RingBufferTrainingExecutor implements TrainingExecutor
             }
         }
 
-        disruptor.shutdown();
-        executor.shutdownNow();
-        try
-        {
-            executor.awaitTermination(100, TimeUnit.MICROSECONDS);
-        }
-        catch (InterruptedException intEx)
-        {
-
-        }
+        kill();
     }
 }
