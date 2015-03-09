@@ -19,7 +19,7 @@ public class SGDLearner implements Learner
     double lambda;
     double eta0 = -1;
     double numSeenTotal = 0;
-
+    boolean regularized = false;
     /**
      * Default constructor, use hinge loss
      */
@@ -54,9 +54,20 @@ public class SGDLearner implements Learner
      */
     public SGDLearner(Loss loss, double lambda, double kEta)
     {
+        this(loss, lambda, kEta, false);
+    }
+
+    /**
+     * Constructor with loss function, regularization param
+     * @param loss loss function
+     * @param lambda regularization param
+     */
+    public SGDLearner(Loss loss, double lambda, double kEta, boolean regularized)
+    {
         this.lossFunction = loss;
         this.lambda = lambda;
         this.eta0 = kEta;
+        this.regularized = regularized;
     }
 
     /**
@@ -95,6 +106,11 @@ public class SGDLearner implements Learner
         }
 
         LinearModel lm = (LinearModel)model;
+        double normW = lm.mag();
+        if (regularized)
+        {
+            normW += lm.getWbias()*lm.getWbias();
+        }
         log.info("wnorm=" + lm.mag());
         return model;
     }
@@ -138,9 +154,15 @@ public class SGDLearner implements Learner
         //}
 
         double etab = eta * 0.01;
+        
+        
+        
         double wbias = lm.getWbias();
 
-
+        if (regularized) 
+        {
+            wbias *= (1 - etab * lambda);
+        }
         wbias += -etab * d;
         lm.setWbias(wbias);
     }
@@ -225,6 +247,10 @@ public class SGDLearner implements Learner
 
         LinearModel lm = (LinearModel)model;
         double normW = lm.mag();
+        if (regularized) 
+        {
+            normW += lm.getWbias() * lm.getWbias();
+        }
         double cost = metrics.getLoss() + 0.5 * lambda * normW;
         metrics.setCost(cost);
 
