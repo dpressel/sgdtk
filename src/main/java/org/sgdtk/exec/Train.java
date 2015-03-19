@@ -6,7 +6,7 @@ import com.beust.jcommander.Parameter;
 import org.sgdtk.*;
 import org.sgdtk.SGDLearner;
 import org.sgdtk.fileio.SVMLightFileFeatureProvider;
-import org.sgdtk.SquareLoss;
+import org.sgdtk.SquaredHingeLoss;
 import org.sgdtk.MultiClassSGDLearner;
 
 import java.io.*;
@@ -78,10 +78,15 @@ public class Train
                 System.out.println("Using log loss");
                 lossFunction = new LogLoss();
             }
+            else if (params.loss.startsWith("sqh"))
+            {
+                System.out.println("Using squared hinge loss");
+                lossFunction = new SquaredHingeLoss();
+            }
             else if (params.loss.startsWith("sq"))
             {
                 System.out.println("Using square loss");
-                lossFunction = new SquareLoss();
+                lossFunction = new SquaredLoss();
             }
             else
             {

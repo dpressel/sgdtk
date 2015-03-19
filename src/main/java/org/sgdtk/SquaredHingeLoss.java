@@ -5,10 +5,10 @@ package org.sgdtk;
  *
  * @author dpressel
  */
-public class SquareLoss implements Loss
+public class SquaredHingeLoss implements Loss
 {
     /**
-     * Square loss
+     * Squared hinge loss
      * @param p predicted
      * @param y actual
      * @return loss
@@ -17,12 +17,14 @@ public class SquareLoss implements Loss
     public final double loss(double p, double y)
     {
         double z = p * y;
+        if (z > 1.0)
+            return 0.;
         double d = 1 - z;
         return 0.5 * d * d;
     }
 
     /**
-     * Derivative square loss
+     * Derivative squared hinge loss
      * @param p predicted
      * @param y actual
      * @return derivative
@@ -31,6 +33,8 @@ public class SquareLoss implements Loss
     public final double dLoss(double p, double y)
     {
         double z = p * y;
+        if (z > 1.0)
+            return 0.;
         double d = 1 - z;
         return -y * d;
     }

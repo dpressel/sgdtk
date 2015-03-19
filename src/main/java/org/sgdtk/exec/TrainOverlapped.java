@@ -91,7 +91,7 @@ public class TrainOverlapped
             else if (params.loss.startsWith("sq"))
             {
                 System.out.println("Using square loss");
-                lossFunction = new SquareLoss();
+                lossFunction = new SquaredHingeLoss();
             }
             else
             {
