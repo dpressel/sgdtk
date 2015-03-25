@@ -1,10 +1,7 @@
 package org.sgdtk.exec;
 
 
-import org.sgdtk.FeatureVector;
-import org.sgdtk.Learner;
-import org.sgdtk.Model;
-import org.sgdtk.UnsafeMemory;
+import org.sgdtk.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,12 +49,19 @@ public class OverlappedTrainingLifecycle
     RandomAccessFile randomAccessFile;
     byte[] packBuffer;
     Model model;
+    boolean dense;
 
     public OverlappedTrainingLifecycle(int epochs, int bufferSz, Learner learner, int fvWidth, File cacheFile) throws IOException
+    {
+        this(epochs, bufferSz, learner, fvWidth, cacheFile, false);
+        
+    }
+    public OverlappedTrainingLifecycle(int epochs, int bufferSz, Learner learner, int fvWidth, File cacheFile, boolean dense) throws IOException
     {
 
         this.epochs = epochs;
         this.cacheFile = cacheFile;
+        this.dense = dense;
         model = learner.create(fvWidth);
 
         trainEx = new RingBufferTrainingExecutor();
@@ -81,7 +85,7 @@ public class OverlappedTrainingLifecycle
             int recordLength = (int) randomAccessFile.readLong();
             packBuffer = growIfNeeded(packBuffer, recordLength);
             randomAccessFile.read(packBuffer, 0, recordLength);
-            FeatureVector fv = ExecUtils.readFeatureVectorFromBuffer(packBuffer);
+            FeatureVector fv = toFeatureVector();
             // add to ring buffer
             trainEx.add(fv);
 
@@ -91,6 +95,18 @@ public class OverlappedTrainingLifecycle
 
         signalEndEpoch();
 
+    }
+
+    private FeatureVector toFeatureVector()
+    {
+        FeatureVector fv = ExecUtils.readFeatureVectorFromBuffer(packBuffer);
+        if (dense)
+        {
+            DenseFeatureVector dfv = new DenseFeatureVector();
+            dfv.from(fv);
+            fv = dfv;
+        }
+        return fv;
     }
 
     private void initCache() throws IOException
@@ -107,7 +123,20 @@ public class OverlappedTrainingLifecycle
     {
         try
         {
-            trainEx.add(fv);
+            FeatureVector featureVector = fv;
+            
+            // Not really sure this is a good way to do this, but then again
+            // I dont have a lot of good dense use-cases right now.
+            if (dense)
+            {
+                if (fv instanceof SparseFeatureVector)
+                {
+                    featureVector = new DenseFeatureVector();
+                    featureVector.from(fv);
+                }
+            }
+            trainEx.add(featureVector);
+            // We can save this as-is even if sparse
             saveCachedFeatureVector(fv);
 
 

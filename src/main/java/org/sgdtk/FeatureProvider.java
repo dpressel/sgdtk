@@ -3,7 +3,7 @@ package org.sgdtk;
 import java.io.IOException;
 
 /**
- * Streaming interface for getting {@link org.sgdtk.FeatureVector}
+ * Streaming interface for getting {@link SparseFeatureVector}
  *
  * @author dpressel
  */

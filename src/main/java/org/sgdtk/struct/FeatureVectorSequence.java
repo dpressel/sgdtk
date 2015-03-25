@@ -10,7 +10,7 @@ import java.util.List;
  *
  * This class is the input for a prediction using a {@link org.sgdtk.struct.SequentialModel}.  It contains the encoded
  * features, but also optionally the raw tokens -- this can be specified when the class is created.  The class is
- * analagous to {@link org.sgdtk.FeatureVector} for unstructured problems, but here think of it as an efficient
+ * analagous to {@link org.sgdtk.SparseFeatureVector} for unstructured problems, but here think of it as an efficient
  * storage of arrays of feature vectors.
  *
  * @author dpressel

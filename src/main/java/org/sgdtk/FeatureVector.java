@@ -1,88 +1,32 @@
+/*
+ * Copyright (c) 2015 3CSI
+ * All Rights Reserved
+ *
+ * THIS IS UNPUBLISHED PROPRIETARY SOURCE CODE OF 3CSI
+ * The copyright notice above does not evidence any
+ * actual or intended publication of such source code.
+ */
+
 package org.sgdtk;
 
-import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Representation of feature vector in a sparse layout.
- * For binary data, the y label should be -1/1.  For multicategory
- * data, the numbers should enumerate from 1 to N
- *
- * @author dpressel
- *
- */
-public class FeatureVector
+public interface FeatureVector
 {
+    int length();
 
-    private List<Offset> offsets;
+    double getY();
 
-    // http://stackoverflow.com/questions/3793838/which-is-the-first-integer-that-an-ieee-754-float-is-incapable-of-representing-e
-    private double y;
+    void setY(double y);
 
-    /**
-     * Constructor for feature vectors that are ground truth
-     * @param y label
-     */
-    public FeatureVector(double y)
-    {
-        this.y = y;
-        this.offsets = new ArrayList<Offset>();
-    }
+    void add(Offset offset);
 
-    /**
-     * Constructor for feature vectors that are not ground truth
-     */
-    public FeatureVector()
-    {
-        this(0);
-    }
-
-    /**
-     * Get all non-zero values and their indices
-     * @return
-     */
-    public final List<Offset> getNonZeroOffsets()
-    {
-        return offsets;
-    }
-
-    /**
-     * Length of feature vector
-     * @return
-     */
-    public final int length()
-    {
-        int sz = offsets.size();
-        return sz == 0 ? 0: (offsets.get(sz - 1).index + 1);
-    }
-
-    // Thankfully, this is not necessary as its implemented
-    /*public double get(int i)
-    {
-        int compressedIndex = Arrays.binarySearch(ints, 0, ints.length, i);
-        return values[compressedIndex];
-    }*/
-
-    /**
-     * Get the label
-     * @return return label
-     */
-    public double getY()
-    {
-        return y;
-    }
-
-    public void setY(double y)
-    {
-        this.y = y;
-    }
-    /**
-     * Add a new offset to the feature vector (must not exceed size)
-     * @param offset
-     */
-    public final void add(Offset offset)
-    {
-        this.offsets.add(offset);
-    }
-
+    void update(double[] vec, double disp);
+    
+    double dot(double[] vec);
+    
+    // This is poor SoC.  Dense vectors should know how to handle themselves
+    public List<Offset> getNonZeroOffsets();
+    
+    void from(FeatureVector source);
 }

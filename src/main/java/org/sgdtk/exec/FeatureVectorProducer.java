@@ -3,6 +3,7 @@ package org.sgdtk.exec;
 
 import org.sgdtk.FeatureProvider;
 import org.sgdtk.FeatureVector;
+import org.sgdtk.Offset;
 import org.sgdtk.UnsafeMemory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.util.List;
 
 /**
  * This is a non-core based feature producer.  It uses a cache to persist read and write FeatureVectors in-between iterations
@@ -140,12 +142,13 @@ public class FeatureVectorProducer
             //buffer = new byte[262144];
             while ((fv = featureProvider.next()) != null)
             {
+                List<Offset> offsetList = fv.getNonZeroOffsets();
                 //++seen;
-                maxNonZeroOffset = Math.max(maxNonZeroOffset, fv.getNonZeroOffsets().size());
+                maxNonZeroOffset = Math.max(maxNonZeroOffset, offsetList.size());
                 executor.add(fv);
 
                 // Figure out how many bytes we need to make this work
-                int numBytes = ExecUtils.getByteSizeForFeatureVector(fv.getNonZeroOffsets().size());
+                int numBytes = ExecUtils.getByteSizeForFeatureVector(offsetList.size());
                 buffer = growIfNeeded(buffer, numBytes);
 
 

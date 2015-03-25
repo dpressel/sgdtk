@@ -114,14 +114,8 @@ public class LinearModel implements Model
     @Override
     public final double predict(final FeatureVector fv)
     {
-        double dot = 0.;
-        for (Offset offset : fv.getNonZeroOffsets())
-        {
-            double weight = weights[offset.index];
-            dot += offset.value * weight;
-        }
-
-        return dot / wdiv + wbias;
+        double acc = fv.dot(weights);
+        return acc / wdiv + wbias;
     }
 
     @Override
@@ -203,10 +197,7 @@ public class LinearModel implements Model
 
     public final void add(FeatureVector fv, double disp)
     {
-        for (Offset offset : fv.getNonZeroOffsets())
-        {
-            weights[offset.index] += offset.value * disp;
-        }
+        fv.update(weights, disp);
     }
     /**
      * Update the weight at i

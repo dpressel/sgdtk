@@ -3,12 +3,16 @@ package org.sgdtk.fileio;
 import org.sgdtk.FeatureProvider;
 import org.sgdtk.FeatureVector;
 import org.sgdtk.Offset;
+import org.sgdtk.SparseFeatureVector;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.StringTokenizer;
 
 /**
  * This reads in Sparse SVM light/Libsvm format data a stream (via a pull).
@@ -160,8 +164,8 @@ public class SVMLightFileFeatureProvider implements FeatureProvider
         final StringTokenizer tokenizer = new StringTokenizer(line, " ");
         final int lastIdxTotal = maxFeatures - 1;
         final int label = Integer.valueOf(tokenizer.nextToken());
-        final FeatureVector fv = new FeatureVector(label);
-        while(tokenizer.hasMoreTokens())
+        final SparseFeatureVector fv = new SparseFeatureVector(label);
+        while (tokenizer.hasMoreTokens())
         {
 
             String subVec = tokenizer.nextToken();

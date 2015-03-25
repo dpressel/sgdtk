@@ -113,7 +113,7 @@ public class RingBufferTrainingExecutor implements TrainingExecutor
 
         /**
          * On a message, check if it is a null FV.  If so, we are at the end of an epoch.
-         * Update book-keeping.  Otherwise, process the FV by using {@link org.sgdtk.Learner#trainOne(org.sgdtk.Model, org.sgdtk.FeatureVector)}
+         * Update book-keeping.  Otherwise, process the FV by using {@link org.sgdtk.Learner#trainOne(org.sgdtk.Model, org.sgdtk.SparseFeatureVector)}
          *
          * @param messageEvent An FV holder
          * @param l Sequence number (which is increasing)

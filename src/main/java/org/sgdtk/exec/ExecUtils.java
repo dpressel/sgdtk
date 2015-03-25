@@ -1,10 +1,6 @@
 package org.sgdtk.exec;
 
-import org.sgdtk.FeatureVector;
-import org.sgdtk.LazyFeatureDictionaryEncoder;
-import org.sgdtk.Offset;
-import org.sgdtk.UnsafeMemory;
-import org.sgdtk.struct.SequenceProvider;
+import org.sgdtk.*;
 import org.sgdtk.fileio.CONLLFileSentenceProvider;
 import org.sgdtk.fileio.SequenceToFeatures;
 import org.sgdtk.struct.*;
@@ -12,7 +8,9 @@ import org.sgdtk.struct.*;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 /**
  *  This stuff is mainly just for command line programs, not for library use.
@@ -64,7 +62,7 @@ public final class ExecUtils
     {
         UnsafeMemory memory = new UnsafeMemory(buffer);
         double y = memory.getDouble();
-        FeatureVector fv = new FeatureVector(y);
+        SparseFeatureVector fv = new SparseFeatureVector(y);
         int sparseSz = memory.getInt();
 
         for (int i = 0; i < sparseSz; ++i)
