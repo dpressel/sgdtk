@@ -12,7 +12,7 @@ import java.util.zip.ZipOutputStream;
  *
  * @author dpressel
  */
-public class MultiClassLinearModel implements Model
+public class MultiClassWeightModel implements Model
 {
     public Model[] models;
 
@@ -31,12 +31,12 @@ public class MultiClassLinearModel implements Model
         save(fos);
     }
 
-    public MultiClassLinearModel()
+    public MultiClassWeightModel()
     {
 
     }
 
-    public MultiClassLinearModel(Model[] model)
+    public MultiClassWeightModel(Model[] model)
     {
         models = new Model[model.length];
         for (int i = 0; i < model.length; ++i)
@@ -67,7 +67,7 @@ public class MultiClassLinearModel implements Model
             }
 
             ByteArrayInputStream bis = new ByteArrayInputStream(baos.toByteArray());
-            Model model = new LinearModel();
+            Model model = new WeightModel();
             model.load(bis);
             baos.close();
             bis.close();
@@ -79,7 +79,7 @@ public class MultiClassLinearModel implements Model
         zis.close();
         inputStream.close();
 
-        models = new LinearModel[numClasses];
+        models = new WeightModel[numClasses];
         for (int i = 1; i <= numClasses; ++i)
         {
             models[i - 1] = modelMap.get(i);
@@ -139,6 +139,6 @@ public class MultiClassLinearModel implements Model
     @Override
     public Model prototype()
     {
-        return new MultiClassLinearModel(models);
+        return new MultiClassWeightModel(models);
     }
 }

@@ -19,7 +19,7 @@ public class SGDLearner implements Learner
     double lambda;
     double eta0 = -1;
     double numSeenTotal = 0;
-    boolean regularized = false;
+    boolean regularizedBias = false;
     /**
      * Default constructor, use hinge loss
      */
@@ -62,12 +62,12 @@ public class SGDLearner implements Learner
      * @param loss loss function
      * @param lambda regularization param
      */
-    public SGDLearner(Loss loss, double lambda, double kEta, boolean regularized)
+    public SGDLearner(Loss loss, double lambda, double kEta, boolean regularizedBias)
     {
         this.lossFunction = loss;
         this.lambda = lambda;
         this.eta0 = kEta;
-        this.regularized = regularized;
+        this.regularizedBias = regularizedBias;
     }
 
     /**
@@ -79,7 +79,7 @@ public class SGDLearner implements Learner
     public final Model create(int wlength)
     {
         this.numSeenTotal = 0;
-        LinearModel lm = new LinearModel(wlength, 1., 0.);
+        WeightModel lm = new WeightModel(wlength);
         return lm;
     }
 
@@ -105,13 +105,13 @@ public class SGDLearner implements Learner
             trainOne(model, fv);
         }
 
-        LinearModel lm = (LinearModel)model;
+        WeightModel lm = (WeightModel)model;
         double normW = lm.mag();
-        if (regularized)
+        if (regularizedBias)
         {
             normW += lm.getWbias()*lm.getWbias();
         }
-        log.info("wnorm=" + lm.mag());
+        log.info("wnorm=" + normW);
         return model;
     }
 
@@ -119,7 +119,7 @@ public class SGDLearner implements Learner
     @Override
     public final void trainOne(Model model, FeatureVector fv)
     {
-        LinearModel lm = (LinearModel)model;
+        WeightModel lm = (WeightModel)model;
         double eta = eta0 / (1 + lambda * eta0 * numSeenTotal);
 
         trainOneWithEta(lm, fv, eta);
@@ -127,44 +127,40 @@ public class SGDLearner implements Learner
         ++numSeenTotal;
     }
 
-    private final void trainOneWithEta(LinearModel lm, FeatureVector fv, double eta)
+    // Performs a single vanilla SGD, also rescales the weight model if required
+    private final void trainOneWithEta(WeightModel weightModel, FeatureVector fv, double eta)
     {
         double y = fv.getY();
-        double fx = lm.predict(fv);
-        double wdiv = lm.getWdiv();
+        double fx = weightModel.predict(fv);
+       
+
+        double dLdp = lossFunction.dLoss(fx, y);
+        double[] weights = weightModel.getWeights();
+        double wdiv = weightModel.getWdiv();
 
         wdiv /= (1 - eta * lambda);
         if (wdiv > 1e5)
         {
 
             final double sf = 1.0 / wdiv;
-            lm.scaleInplace(sf);
+            CollectionsManip.scaleInplace(weights, sf);
             wdiv = 1.;
-
         }
-        lm.setWdiv(wdiv);
+        weightModel.setWdiv(wdiv);
 
-        double d = lossFunction.dLoss(fx, y);
-        double disp = -eta * d * wdiv;
-
-        lm.add(fv, disp);
-        //for (Offset offset : fv.getNonZeroOffsets())
-        //{
-        //    lm.addInplace(offset.index, offset.value * disp);
-        //}
+        fv.update(weights, -eta * dLdp * wdiv);
 
         double etab = eta * 0.01;
-        
-        
-        
-        double wbias = lm.getWbias();
 
-        if (regularized) 
+        double wbias = weightModel.getWbias();
+
+        if (regularizedBias)
         {
             wbias *= (1 - etab * lambda);
         }
-        wbias += -etab * d;
-        lm.setWbias(wbias);
+        wbias += -etab * dLdp;
+
+        weightModel.setWbias(wbias);
     }
 
     @Override
@@ -202,7 +198,7 @@ public class SGDLearner implements Learner
 
     private double evalEta(Model model, List<FeatureVector> sample, double eta)
     {
-        LinearModel clone = (LinearModel)model.prototype();
+        WeightModel clone = (WeightModel)model.prototype();
         for (FeatureVector fv : sample)
         {
             trainOneWithEta(clone, fv, eta);
@@ -245,11 +241,11 @@ public class SGDLearner implements Learner
             evalOne(model, fv, metrics);
         }
 
-        LinearModel lm = (LinearModel)model;
-        double normW = lm.mag();
-        if (regularized) 
+        WeightModel weightModel = (WeightModel)model;
+        double normW = weightModel.mag();
+        if (regularizedBias)
         {
-            normW += lm.getWbias() * lm.getWbias();
+            normW += weightModel.getWbias() * weightModel.getWbias();
         }
         double cost = metrics.getLoss() + 0.5 * lambda * normW;
         metrics.setCost(cost);

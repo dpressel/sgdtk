@@ -19,7 +19,7 @@ public class MultiClassSGDLearner implements Learner
     Loss lossFunction;
     double lambda;
     double eta0;
-    boolean regularized;
+    boolean regularizedBias;
 
     /**
      * Default constructor, use hinge loss
@@ -53,12 +53,12 @@ public class MultiClassSGDLearner implements Learner
         this(numClasses, loss, lambda, kEta, false);
         
     }
-    public MultiClassSGDLearner(int numClasses, Loss loss, double lambda, double kEta, boolean regularized)
+    public MultiClassSGDLearner(int numClasses, Loss loss, double lambda, double kEta, boolean regularizedBias)
     {
         this.lossFunction = loss;
         this.lambda = lambda;
         this.eta0 = kEta;
-        this.regularized = regularized;
+        this.regularizedBias = regularizedBias;
         learners = new SGDLearner[numClasses];
     }
 
@@ -69,10 +69,10 @@ public class MultiClassSGDLearner implements Learner
         Model[] models = new Model[learners.length];
         for (int i = 0; i < learners.length; ++i)
         {
-            learners[i] = new SGDLearner(lossFunction, lambda, eta0, regularized);
+            learners[i] = new SGDLearner(lossFunction, lambda, eta0, regularizedBias);
             models[i] = learners[i].create(wlength);
         }
-        return new MultiClassLinearModel(models);
+        return new MultiClassWeightModel(models);
     }
 
     @Override
@@ -96,7 +96,7 @@ public class MultiClassSGDLearner implements Learner
     @Override
     public void trainOne(Model model, FeatureVector fv)
     {
-        MultiClassLinearModel mclm = (MultiClassLinearModel)model;
+        MultiClassWeightModel mclm = (MultiClassWeightModel)model;
 
         double yReal = fv.getY();
         for (int i = 0; i < mclm.models.length; ++i)
@@ -117,7 +117,7 @@ public class MultiClassSGDLearner implements Learner
             yReal[i] = sample.get(i).getY();
         }
 
-        MultiClassLinearModel mclm = (MultiClassLinearModel)model;
+        MultiClassWeightModel mclm = (MultiClassWeightModel)model;
 
         for (int i = 0; i < mclm.models.length; ++i)
         {
@@ -139,7 +139,7 @@ public class MultiClassSGDLearner implements Learner
     @Override
     public void evalOne(Model model, FeatureVector fv, Metrics metrics)
     {
-        MultiClassLinearModel mclm = (MultiClassLinearModel)model;
+        MultiClassWeightModel mclm = (MultiClassWeightModel)model;
 
         double yReal = fv.getY();
 

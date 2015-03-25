@@ -8,7 +8,7 @@ import java.util.Arrays;
  *
  * @author dpressel
  */
-public class LinearModel implements Model
+public class WeightModel implements Model
 {
     private double[] weights;
     private double wdiv;
@@ -74,6 +74,12 @@ public class LinearModel implements Model
         objectOutputStream.close();
     }
 
+    public WeightModel(int wlength)
+    {
+        this(wlength, 1, 0);
+        
+    }
+    
     /**
      * Create empty but initialized model
      *
@@ -81,7 +87,7 @@ public class LinearModel implements Model
      * @param wdiv    scaling
      * @param wbias   bias
      */
-    public LinearModel(int wlength, double wdiv, double wbias)
+    public WeightModel(int wlength, double wdiv, double wbias)
     {
         this.weights = new double[wlength];
         Arrays.fill(this.weights, 0);
@@ -89,7 +95,7 @@ public class LinearModel implements Model
         this.wbias = wbias;
     }
 
-    protected LinearModel(double[] weights, double wdiv, double wbias)
+    protected WeightModel(double[] weights, double wdiv, double wbias)
     {
         this.weights = new double[weights.length];
         System.arraycopy(weights, 0, this.weights, 0, weights.length);
@@ -100,7 +106,7 @@ public class LinearModel implements Model
     /**
      * Empty constructor
      */
-    public LinearModel()
+    public WeightModel()
     {
 
     }
@@ -171,7 +177,7 @@ public class LinearModel implements Model
      */
     public Model prototype()
     {
-        return new LinearModel(weights, wdiv, wbias);
+        return new WeightModel(weights, wdiv, wbias);
     }
 
     /**
@@ -185,27 +191,9 @@ public class LinearModel implements Model
         return dotProd / wdiv / wdiv;
     }
 
-    /**
-     * Scale the weight vector inplace
-     *
-     * @param scalar Scalar to use
-     */
-    public final void scaleInplace(double scalar)
+    public double[] getWeights()
     {
-        CollectionsManip.scaleInplace(weights, scalar);
+        return weights;
     }
 
-    public final void add(FeatureVector fv, double disp)
-    {
-        fv.update(weights, disp);
-    }
-    /**
-     * Update the weight at i
-     * @param i weight index
-     * @param update value to add
-     */
-    //public final void addInplace(int i, double update)
-    //{
-    //    weights[i] += update;
-    //}
 }
