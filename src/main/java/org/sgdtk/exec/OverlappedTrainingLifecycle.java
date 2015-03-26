@@ -109,11 +109,12 @@ public class OverlappedTrainingLifecycle
         return fv;
     }
 
+    private static final int PACK_BUFFER_SZ = 262144;
     private void initCache() throws IOException
     {
         if (epochs > 1)
         {
-            packBuffer = new byte[262144];
+            packBuffer = new byte[PACK_BUFFER_SZ];
             //cacheFile = File.createTempFile("sgd", ".cache", cacheDir);
             randomAccessFile = new RandomAccessFile(cacheFile, "rw");
         }

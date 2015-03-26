@@ -127,7 +127,19 @@ public class SGDLearner implements Learner
         ++numSeenTotal;
     }
 
-    // Performs a single vanilla SGD, also rescales the weight model if required
+    /**
+     * This method performs an SGD update from a single training example.  This looks a little different
+     * than most implementations I'm aware of, mostly because of a trick that speeds the code up drastically for sparse
+     * vector by avoiding a rescale by the regularization parameters over the full vector.  You can see the typical 
+     * update approach in sofia-ml and scikit-learn.  However, here, a factoring of the weight vector is employed that
+     * separates the scalar due to regularization from the loss gradient application.  The factoring is described
+     * here (under section 5.1):
+     * 
+     * @see <a href="http://research.microsoft.com/pubs/192769/tricks-2012.pdf">http://research.microsoft.com/pubs/192769/tricks-2012.pdf</a>
+     * @param weightModel
+     * @param fv
+     * @param eta
+     */
     private final void trainOneWithEta(WeightModel weightModel, FeatureVector fv, double eta)
     {
         double y = fv.getY();
@@ -138,22 +150,29 @@ public class SGDLearner implements Learner
         double[] weights = weightModel.getWeights();
         double wdiv = weightModel.getWdiv();
 
+        // The wdiv is a scalar factored out of the weight vector due to regularization
+        // This prevents having to scale the entire weight vector, which is dense
+        // To handle properly, we have to account for this factoring in the model and update the
+        // weight vector on use.
         wdiv /= (1 - eta * lambda);
+        
+        // This rescales for stability, may not be necessary
         if (wdiv > 1e5)
         {
-
             final double sf = 1.0 / wdiv;
             CollectionsManip.scaleInplace(weights, sf);
             wdiv = 1.;
         }
         weightModel.setWdiv(wdiv);
 
-        fv.update(weights, -eta * dLdp * wdiv);
+        // When we factored wdiv out, we have to account for this in our gradient update as well
+        fv.updateWeights(weights, -eta * dLdp * wdiv);
 
+        // This is referenced on Leon Bottou's SGD page
         double etab = eta * 0.01;
-
         double wbias = weightModel.getWbias();
 
+        // The SGD code supports bias regularization only with an ifdef which defaults to off
         if (regularizedBias)
         {
             wbias *= (1 - etab * lambda);

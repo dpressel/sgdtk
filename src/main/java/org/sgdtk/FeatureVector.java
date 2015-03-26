@@ -21,7 +21,7 @@ public interface FeatureVector
 
     void add(Offset offset);
 
-    void update(double[] vec, double disp);
+    void updateWeights(double[] weights, double disp);
     
     double dot(double[] vec);
     
