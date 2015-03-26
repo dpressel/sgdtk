@@ -100,13 +100,7 @@ public class SparseFeatureVector implements FeatureVector
         this.offsets.add(offset);
     }
 
-    public final void updateWeights(double[] weights, double disp)
-    {
-        for (Offset offset : getNonZeroOffsets())
-        {
-            weights[offset.index] += offset.value * disp;
-        }
-    }
+
     public final double dot(double[] vec)
     {
         double acc = 0.;

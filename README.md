@@ -30,13 +30,18 @@ The library was developed and tested in Intellij using Java 8, but can be built,
 should work on lower Java versions.  The only dependencies in the library currently are JCommander for easy command
 line parsing, slf4j/logback for logging, and LMAX disruptor for fast contention-free ring buffers.
 
+## Loss Functions
+
+The usual suspects here: hinge, log, squared-hinge, squared (L2) (which is absent from SGD)
+
 ## Performance
 
 A significant amount of time has gone into profiling the code and optimizing performance.  
-The primary bottleneck for performance on large datasets using a good SGD SVM implementation tends to be the IO portion
-(not the computation). Note this is true in Leon Bottou's SGD code, which reads all of the data into memory upfront.
-Due to the IO bottleneck, I tried to ensure that reading the input file is as fast as possible, and like in VW,
-overlapping the IO and the computation via a shared ring buffer allow simultaneous reading/loading and processing.
+The primary bottleneck for performance on large datasets using a good SGD linear classifier implementation
+tends to be the IO portion (not the computation). Note this is true in Leon Bottou's SGD code, which reads 
+all of the data into memory upfront. Due to the IO bottleneck, I tried to ensure that reading the input file is as
+fast as possible, and like in VW, overlapping the IO and the computation via a shared ring buffer allow simultaneous
+reading/loading and processing.
 
 Regarding the computational aspect, this employs many of the tricks from Leon Bottou's original implementation which makes
 it significantly faster than naive implementations (though perhaps more complex).

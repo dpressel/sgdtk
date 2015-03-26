@@ -21,8 +21,6 @@ public interface FeatureVector
 
     void add(Offset offset);
 
-    void updateWeights(double[] weights, double disp);
-    
     double dot(double[] vec);
     
     // This is poor SoC.  Dense vectors should know how to handle themselves

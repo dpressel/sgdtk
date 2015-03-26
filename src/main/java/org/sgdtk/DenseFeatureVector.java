@@ -59,15 +59,6 @@ public class DenseFeatureVector implements FeatureVector
     }
 
     @Override
-    public void updateWeights(double[] weights, double disp)
-    {
-        for (int i = 0; i < length; ++i)
-        {
-            weights[i] += x[i] * disp;
-        }
-    }
-
-    @Override
     public double dot(double[] vec)
     {
         return CollectionsManip.dot(x, vec);
