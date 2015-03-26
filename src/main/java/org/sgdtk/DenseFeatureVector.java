@@ -26,7 +26,7 @@ public class DenseFeatureVector implements FeatureVector
         
     }
     
-    double [] getX()
+    public double [] getX()
     {
         return x;
         
