@@ -19,8 +19,6 @@ public class MultiClassSGDLearner implements Learner
     Loss lossFunction;
     double lambda;
     double eta0;
-    boolean regularizedBias;
-
     /**
      * Default constructor, use hinge loss
      */
@@ -50,15 +48,9 @@ public class MultiClassSGDLearner implements Learner
 
     public MultiClassSGDLearner(int numClasses, Loss loss, double lambda, double kEta)
     {
-        this(numClasses, loss, lambda, kEta, false);
-        
-    }
-    public MultiClassSGDLearner(int numClasses, Loss loss, double lambda, double kEta, boolean regularizedBias)
-    {
         this.lossFunction = loss;
         this.lambda = lambda;
         this.eta0 = kEta;
-        this.regularizedBias = regularizedBias;
         learners = new SGDLearner[numClasses];
     }
 
@@ -69,7 +61,7 @@ public class MultiClassSGDLearner implements Learner
         Model[] models = new Model[learners.length];
         for (int i = 0; i < learners.length; ++i)
         {
-            learners[i] = new SGDLearner(lossFunction, lambda, eta0, regularizedBias);
+            learners[i] = new SGDLearner(lossFunction, lambda, eta0);
             models[i] = learners[i].create(wlength);
         }
         return new MultiClassWeightModel(models);

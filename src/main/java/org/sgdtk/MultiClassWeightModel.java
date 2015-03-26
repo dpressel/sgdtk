@@ -67,7 +67,7 @@ public class MultiClassWeightModel implements Model
             }
 
             ByteArrayInputStream bis = new ByteArrayInputStream(baos.toByteArray());
-            Model model = new WeightModel();
+            Model model = new LinearModel();
             model.load(bis);
             baos.close();
             bis.close();
@@ -79,7 +79,7 @@ public class MultiClassWeightModel implements Model
         zis.close();
         inputStream.close();
 
-        models = new WeightModel[numClasses];
+        models = new LinearModel[numClasses];
         for (int i = 1; i <= numClasses; ++i)
         {
             models[i - 1] = modelMap.get(i);

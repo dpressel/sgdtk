@@ -1,12 +1,3 @@
-/*
- * Copyright (c) 2015 3CSI
- * All Rights Reserved
- *
- * THIS IS UNPUBLISHED PROPRIETARY SOURCE CODE OF 3CSI
- * The copyright notice above does not evidence any
- * actual or intended publication of such source code.
- */
-
 package org.sgdtk;
 
 import java.util.ArrayList;
@@ -32,6 +23,12 @@ public class DenseFeatureVector implements FeatureVector
         this.y = y;
         this.length = length;
         x = new double[length];
+        
+    }
+    
+    double [] getX()
+    {
+        return x;
         
     }
     @Override
