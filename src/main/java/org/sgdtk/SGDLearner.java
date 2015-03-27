@@ -20,7 +20,7 @@ public class SGDLearner implements Learner
     double eta0 = -1;
     double numSeenTotal = 0;
     //boolean regularizedBias = false;
-    private ModelFactory modelFactory = new LinearModelFactory();
+    private ModelFactory modelFactory = null;
     /**
      * Default constructor, use hinge loss
      */
@@ -55,10 +55,17 @@ public class SGDLearner implements Learner
      */
     public SGDLearner(Loss loss, double lambda, double kEta)
     {
+        this(loss, lambda, kEta, new LinearModelFactory());
+    }
+
+    public SGDLearner(Loss loss, double lambda, double kEta, ModelFactory modelFactory)
+    {
         this.lossFunction = loss;
         this.lambda = lambda;
         this.eta0 = kEta;
         this.numSeenTotal = 0;
+        this.modelFactory = modelFactory;
+
     }
 
     /**
