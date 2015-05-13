@@ -11,20 +11,63 @@ package org.sgdtk;
 
 import java.util.List;
 
-public interface FeatureVector
+public class FeatureVector
 {
-    int length();
+    VectorN x;
+    double y;
 
-    double getY();
+    public static FeatureVector newSparse(double y)
+    {
+        return new FeatureVector(y, new SparseVectorN());
+    }
+    public static FeatureVector newDense(double y, int length)
+    {
+        return new FeatureVector(y, new DenseVectorN(length));
+    }
 
-    void setY(double y);
+    public FeatureVector(double y, VectorN repr)
+    {
+        this.y = y;
+        this.x = repr;
+    }
 
-    void add(Offset offset);
+    public int length()
+    {
+        return x.length();
+    }
 
-    double dot(double[] vec);
+    public VectorN getX()
+    {
+        return x;
+    }
+    public double getY()
+    {
+        return y;
+    }
+
+    public void setY(double y)
+    {
+        this.y = y;
+    }
+    public void add(Offset offset)
+    {
+        x.add(offset);
+    }
+
+    public double dot(double[] vec)
+    {
+        return x.dot(vec);
+    }
     
     // This is poor SoC.  Dense vectors should know how to handle themselves
-    public List<Offset> getNonZeroOffsets();
+    public List<Offset> getNonZeroOffsets()
+    {
+        return x.getNonZeroOffsets();
+    }
     
-    void from(FeatureVector source);
+    public void from(FeatureVector source)
+    {
+        this.y = source.getY();
+        this.x.from(source.getX());
+    }
 }

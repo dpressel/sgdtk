@@ -5,9 +5,16 @@ package org.sgdtk;
  *
  * @author dpressel
  */
-public class Offset
+public class Offset implements Comparable<Offset>
 {
     public final int index;
+
+    @Override
+    public int compareTo(Offset o)
+    {
+        return Integer.compare(index, o.index);
+    }
+
     public final double value;
 
     /**

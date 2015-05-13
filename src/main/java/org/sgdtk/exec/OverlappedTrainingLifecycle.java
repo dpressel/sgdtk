@@ -102,9 +102,9 @@ public class OverlappedTrainingLifecycle
         FeatureVector fv = ExecUtils.readFeatureVectorFromBuffer(packBuffer);
         if (dense)
         {
-            DenseFeatureVector dfv = new DenseFeatureVector();
-            dfv.from(fv);
-            fv = dfv;
+            DenseVectorN dense = new DenseVectorN(fv.getX());
+            fv = new FeatureVector(fv.getY(), dense);
+
         }
         return fv;
     }
@@ -130,10 +130,10 @@ public class OverlappedTrainingLifecycle
             // I dont have a lot of good dense use-cases right now.
             if (dense)
             {
-                if (fv instanceof SparseFeatureVector)
+                if (fv.getX() instanceof SparseVectorN)
                 {
-                    featureVector = new DenseFeatureVector();
-                    featureVector.from(fv);
+                    DenseVectorN dense = new DenseVectorN(fv.getX());
+                    featureVector = new FeatureVector(fv.getY(), dense);
                 }
             }
             trainEx.add(featureVector);

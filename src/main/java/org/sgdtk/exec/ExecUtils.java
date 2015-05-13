@@ -62,13 +62,14 @@ public final class ExecUtils
     {
         UnsafeMemory memory = new UnsafeMemory(buffer);
         double y = memory.getDouble();
-        SparseFeatureVector fv = new SparseFeatureVector(y);
+        FeatureVector fv = FeatureVector.newSparse(y);
         int sparseSz = memory.getInt();
 
         for (int i = 0; i < sparseSz; ++i)
         {
             fv.add(new Offset(memory.getInt(), memory.getDouble()));
         }
+        fv.getX().organize();
         return fv;
     }
 

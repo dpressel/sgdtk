@@ -3,7 +3,6 @@ package org.sgdtk.fileio;
 import org.sgdtk.FeatureProvider;
 import org.sgdtk.FeatureVector;
 import org.sgdtk.Offset;
-import org.sgdtk.SparseFeatureVector;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -164,7 +163,7 @@ public class SVMLightFileFeatureProvider implements FeatureProvider
         final StringTokenizer tokenizer = new StringTokenizer(line, " ");
         final int lastIdxTotal = maxFeatures - 1;
         final int label = Integer.valueOf(tokenizer.nextToken());
-        final SparseFeatureVector fv = new SparseFeatureVector(label);
+        final FeatureVector fv = FeatureVector.newSparse(label);
         while (tokenizer.hasMoreTokens())
         {
 
@@ -178,7 +177,7 @@ public class SVMLightFileFeatureProvider implements FeatureProvider
             final double value = Double.valueOf(subVec.substring(to+1));
             fv.add(new Offset(idx, value));
         }
-
+        fv.getX().organize();
         return fv;
     }
 

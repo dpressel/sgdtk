@@ -3,51 +3,42 @@ package org.sgdtk;
 import java.util.ArrayList;
 import java.util.List;
 
-public class DenseFeatureVector implements FeatureVector
+public class DenseVectorN implements VectorN
 {
     double[] x;
-    double y;
     int length;
-    
-    public DenseFeatureVector()
-    {
-    }
 
-    public DenseFeatureVector(double y)
+    public DenseVectorN(VectorN source)
     {
-        this.y = y;
+        this.from(source);
     }
-    
-    public DenseFeatureVector(double y, int length)
+    public DenseVectorN()
     {
-        this.y = y;
+
+    }
+    public DenseVectorN(int length)
+    {
         this.length = length;
         x = new double[length];
-        
     }
-    
+    public DenseVectorN(double[] x)
+    {
+        this.x = new double[x.length];
+        length = x.length;
+        System.arraycopy(x, 0, this.x, 0, length);
+    }
     public double [] getX()
     {
         return x;
-        
+
     }
+
     @Override
     public int length()
     {
         return length;
     }
 
-    @Override
-    public double getY()
-    {
-        return y;
-    }
-
-    @Override
-    public void setY(double y)
-    {
-        this.y = y;
-    }
 
     @Override
     public void add(Offset offset)
@@ -56,6 +47,13 @@ public class DenseFeatureVector implements FeatureVector
         {
             throw new RuntimeException("Index out of bounds! " + offset.index + ". Max is " + length);
         }
+        x[offset.index] = offset.value;
+    }
+
+    @Override
+    public void set(int i, double v)
+    {
+        x[i] = v;
     }
 
     @Override
@@ -79,15 +77,25 @@ public class DenseFeatureVector implements FeatureVector
     }
 
     @Override
-    public void from(FeatureVector source)
+    public void from(VectorN source)
     {
-        this.y = source.getY();
         length = source.length();
         x = new double[length];
-        
+
         for (Offset offset : source.getNonZeroOffsets())
         {
             x[offset.index] = offset.value;
         }
     }
+
+    public double at(int i)
+    {
+        return x[i];
+    }
+
+    public void organize()
+    {
+
+    }
+
 }
