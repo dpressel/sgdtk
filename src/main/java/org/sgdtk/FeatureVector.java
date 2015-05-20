@@ -16,6 +16,8 @@ public class FeatureVector
     VectorN x;
     double y;
 
+    public static final double UNLABELED = Double.MIN_VALUE;
+
     public static FeatureVector newSparse(double y)
     {
         return new FeatureVector(y, new SparseVectorN());
@@ -24,6 +26,16 @@ public class FeatureVector
     {
         return new FeatureVector(y, new DenseVectorN(length));
     }
+
+    public static FeatureVector newSparse()
+    {
+        return new FeatureVector(UNLABELED, new SparseVectorN());
+    }
+    public static FeatureVector newDense(int length)
+    {
+        return new FeatureVector(UNLABELED, new DenseVectorN(length));
+    }
+
 
     public FeatureVector(double y, VectorN repr)
     {

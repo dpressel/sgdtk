@@ -144,4 +144,30 @@ public class CollectionsManip
         return flipped;
     }
 
+    // Java 8 has this, so does Apache Commons, but assume LCD here
+    public static String join(String[] str, String joinStr)
+    {
+        StringBuffer buffer = new StringBuffer();
+        int i = 0;
+        for (; i < str.length - 1; ++i)
+        {
+            buffer.append(str[i]);
+            buffer.append(joinStr);
+        }
+        buffer.append(str[i]);
+        return buffer.toString();
+    }
+
+    // Exists in Java 8 and Apache Commons, but assume LCD here
+    public static <T> T getOrDefault(Map<String, T> ftable, String word, T def)
+    {
+        T count = ftable.get(word);
+        if (count == null)
+        {
+            count = def;
+        }
+        return count;
+    }
+
+
 }
