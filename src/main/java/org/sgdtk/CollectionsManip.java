@@ -159,9 +159,9 @@ public class CollectionsManip
     }
 
     // Exists in Java 8 and Apache Commons, but assume LCD here
-    public static <T> T getOrDefault(Map<String, T> ftable, String word, T def)
+    public static <K, T> T getOrDefault(Map<K, T> ftable, K key, T def)
     {
-        T count = ftable.get(word);
+        T count = ftable.get(key);
         if (count == null)
         {
             count = def;
