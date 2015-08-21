@@ -125,7 +125,7 @@ public class SGDLearner implements Learner
         double fx = weightModel.predict(fv);
         double dLoss = lossFunction.dLoss(fx, y);
 
-        weightModel.updateWeights(fv.getX(), eta, lambda, dLoss);
+        weightModel.updateWeights(fv.getX(), eta, lambda, dLoss, y);
         ++numSeenTotal;
     }
 
@@ -170,7 +170,7 @@ public class SGDLearner implements Learner
             double y = fv.getY();
             double fx = clone.predict(fv);
             double dLoss = lossFunction.dLoss(fx, y);
-            clone.updateWeights(fv.getX(), eta, lambda, dLoss);
+            clone.updateWeights(fv.getX(), eta, lambda, dLoss, y);
         }
         Metrics metrics = new Metrics();
         eval(clone, sample, metrics);

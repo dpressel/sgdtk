@@ -26,7 +26,7 @@ public class LinearModel implements WeightModel
      * @param eta
      * @see <a href="http://research.microsoft.com/pubs/192769/tricks-2012.pdf">http://research.microsoft.com/pubs/192769/tricks-2012.pdf</a>
      */
-    public final void updateWeights(VectorN vectorN, double eta, double lambda, double dLoss)
+    public final void updateWeights(VectorN vectorN, double eta, double lambda, double dLoss, double y)
     {
 
         // The wdiv is a scalar factored out of the weight vector due to regularization
