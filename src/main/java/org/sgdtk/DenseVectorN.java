@@ -41,6 +41,51 @@ public class DenseVectorN implements VectorN
 
 
     @Override
+    public void add(double[] vec)
+    {
+        assert(vec.length <= length);
+        for (int i = 0; i < vec.length; ++i)
+        {
+            x[i] += vec[i];
+        }
+    }
+
+    @Override
+    public double mag()
+    {
+        double acc = 0.0;
+        for (int i = 0; i < x.length; ++i)
+        {
+            acc += x[i] * x[i];
+        }
+        return acc;
+    }
+
+    @Override
+    public double update(int i, double v)
+    {
+        x[i] += v;
+        return x[i];
+    }
+
+    @Override
+    public void add(VectorN vec)
+    {
+        if (vec instanceof SparseVectorN)
+        {
+            for (Offset offset : vec.getNonZeroOffsets())
+            {
+                x[offset.index] += offset.value;
+            }
+        }
+        else
+        {
+            DenseVectorN dv = (DenseVectorN)vec;
+            add(dv.getX());
+        }
+    }
+
+    @Override
     public void add(Offset offset)
     {
         if (offset.index > length)
@@ -57,9 +102,46 @@ public class DenseVectorN implements VectorN
     }
 
     @Override
+    public double dot(VectorN vec)
+    {
+        double acc = 0.;
+        if (vec instanceof SparseVectorN)
+        {
+            for (Offset offset : vec.getNonZeroOffsets())
+            {
+                acc += x[offset.index] * offset.value;
+            }
+        }
+        else
+        {
+            DenseVectorN dv = (DenseVectorN)vec;
+            return dot(dv.getX());
+        }
+        return acc;
+    }
+
+    @Override
+    public void reset()
+    {
+        for (int i = 0; i < x.length; ++i)
+        {
+            x[i] = 0.;
+        }
+    }
+
+    @Override
     public double dot(double[] vec)
     {
         return CollectionsManip.dot(x, vec);
+    }
+
+    @Override
+    public void scale(double scalar)
+    {
+        for (int i = 0; i < x.length; ++i)
+        {
+            x[i] *= scalar;
+        }
     }
 
     @Override

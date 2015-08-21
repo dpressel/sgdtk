@@ -7,7 +7,7 @@ package org.sgdtk;
  */
 public class Offset implements Comparable<Offset>
 {
-    public final int index;
+    public int index;
 
     @Override
     public int compareTo(Offset o)
@@ -15,7 +15,7 @@ public class Offset implements Comparable<Offset>
         return Integer.compare(index, o.index);
     }
 
-    public final double value;
+    public double value;
 
     /**
      * Default constructor

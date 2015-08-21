@@ -10,6 +10,7 @@ import org.sgdtk.SquaredHingeLoss;
 import org.sgdtk.MultiClassSGDLearner;
 
 import java.io.*;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -103,6 +104,7 @@ public class Train
             double totalTrainingElapsed = 0.;
             for (int i = 0; i < params.epochs; ++i)
             {
+                Collections.shuffle(trainingSet);
                 System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
                 System.out.println("EPOCH: " + (i + 1));
                 Metrics metrics = new Metrics();

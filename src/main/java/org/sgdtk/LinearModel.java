@@ -26,7 +26,7 @@ public class LinearModel implements WeightModel
      * @param eta
      * @see <a href="http://research.microsoft.com/pubs/192769/tricks-2012.pdf">http://research.microsoft.com/pubs/192769/tricks-2012.pdf</a>
      */
-    public final void updateWeights(FeatureVector fv, double eta, double lambda, double dLoss)
+    public final void updateWeights(VectorN vectorN, double eta, double lambda, double dLoss)
     {
 
         // The wdiv is a scalar factored out of the weight vector due to regularization
@@ -43,7 +43,7 @@ public class LinearModel implements WeightModel
         }
 
         // When we factored wdiv out, we have to account for this in our gradient update as well
-        for (Offset offset : fv.getNonZeroOffsets())
+        for (Offset offset : vectorN.getNonZeroOffsets())
         {
             weights[offset.index] += offset.value * -eta * dLoss * wdiv;
         }

@@ -119,12 +119,13 @@ public class SGDLearner implements Learner
     public final void trainOne(Model model, FeatureVector fv)
     {
         WeightModel weightModel = (WeightModel)model;
+        // Robbins-Monro update
         double eta = eta0 / (1 + lambda * eta0 * numSeenTotal);
         double y = fv.getY();
         double fx = weightModel.predict(fv);
         double dLoss = lossFunction.dLoss(fx, y);
 
-        weightModel.updateWeights(fv, eta, lambda, dLoss);
+        weightModel.updateWeights(fv.getX(), eta, lambda, dLoss);
         ++numSeenTotal;
     }
 
@@ -169,7 +170,7 @@ public class SGDLearner implements Learner
             double y = fv.getY();
             double fx = clone.predict(fv);
             double dLoss = lossFunction.dLoss(fx, y);
-            clone.updateWeights(fv, eta, lambda, dLoss);
+            clone.updateWeights(fv.getX(), eta, lambda, dLoss);
         }
         Metrics metrics = new Metrics();
         eval(clone, sample, metrics);
@@ -188,9 +189,38 @@ public class SGDLearner implements Learner
     {
 
         double y = fv.getY();
-        double fx = model.predict(fv);
-        double loss = lossFunction.loss(fx, y);
+
+        double[] scores = model.score(fv);
+        double fx = scores[0];
+
+        // True in binary case
         double error = (fx * y <= 0) ? 1 : 0;
+        int best = 0;
+
+        // If multi-class
+        if (scores.length > 1)
+        {
+            // Support multi-label.  Assume for now that the cost function is going to want as input only the
+            // index of the correct value. We can check that they are the same by testing the index.
+            double maxv = -100000.0;
+
+            for (int i = 0; i < scores.length; ++i)
+            {
+                if (scores[i] > maxv)
+                {
+                    // Label enum is index + 1
+                    best = i + 1;
+                    maxv = scores[i];
+                }
+            }
+            if (best != y)
+            {
+                error = 1;
+            }
+            fx = scores[(int)y];
+        }
+        double loss = lossFunction.loss(fx, y);
+
         metrics.add(loss, error);
     }
 

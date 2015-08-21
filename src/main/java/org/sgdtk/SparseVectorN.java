@@ -62,7 +62,25 @@ public class SparseVectorN implements VectorN
         }
         else
         {
-            offsets.set(j, new Offset(i, v));
+            offsets.get(j).value = v;
+        }
+    }
+
+    public double update(int i, double v)
+    {
+        int j = realIndex(i);
+        if (j < 0)
+        {
+            add(new Offset(i, v));
+            Collections.sort(offsets);
+            return v;
+        }
+        else
+        {
+            double acc = offsets.get(j).value + v;
+
+            offsets.get(j).value = acc;
+            return acc;
         }
     }
 
@@ -83,8 +101,6 @@ public class SparseVectorN implements VectorN
         return -1;
     }
 
-
-
     public double at(int i)
     {
         int j = realIndex(i);
@@ -92,6 +108,65 @@ public class SparseVectorN implements VectorN
         return j < 0 ? 0.: offsets.get(j).value;
     }
 
+    @Override
+    public void add(double[] vec)
+    {
+        for (int i = 0; i < vec.length; ++i)
+        {
+            if (vec[i] != 0.0)
+            {
+                update(i, vec[i]);
+            }
+        }
+    }
+
+    @Override
+    public void scale(double scalar)
+    {
+        for (Offset offset : offsets)
+        {
+            offset.value *= scalar;
+        }
+    }
+
+    @Override
+    public void add(VectorN vec)
+    {
+        for (Offset offset : vec.getNonZeroOffsets())
+        {
+            update(offset.index, offset.value);
+
+        }
+    }
+
+    @Override
+    public double mag()
+    {
+        double acc = 0.0;
+        for (Offset offset : offsets)
+        {
+            acc += offset.value * offset.value;
+        }
+        return acc;
+    }
+
+    // TODO: buffer This will be horribly slow for sparse on RHS, do not use for sparse-sparse dots!!!
+    @Override
+    public double dot(VectorN vectorN)
+    {
+        double acc = 0.;
+        for (Offset offset : offsets)
+        {
+            acc += offset.value * vectorN.at(offset.index);
+        }
+        return acc;
+    }
+
+    @Override
+    public void reset()
+    {
+        offsets.clear();
+    }
 
     /**
      * Add a new offset to the feature vector (must not exceed size)
