@@ -11,7 +11,7 @@ public class RobbinsMonroUpdateSchedule implements LearningRateSchedule
 
     }
     @Override
-    public void reset(double lambda, double eta0)
+    public void reset(double eta0, double lambda)
     {
         this.lambda = lambda;
         this.eta0 = eta0;

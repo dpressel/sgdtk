@@ -125,8 +125,11 @@ public class TrainOverlapped
             }
 
             Model model = trainingLifecycle.finish();
-
-
+            if (model instanceof LinearModel)
+            {
+                double wnorm = ((LinearModel)model).mag();
+                System.out.println("wnorm=" + wnorm);
+            }
             //if (evalSet != null)
             //{
             //    learner.eval(model, evalSet, metrics);

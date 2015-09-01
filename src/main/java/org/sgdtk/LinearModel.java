@@ -45,6 +45,7 @@ public class LinearModel implements WeightModel
         // When we factored wdiv out, we have to account for this in our gradient update as well
         for (Offset offset : vectorN.getNonZeroOffsets())
         {
+            //double thisEta = perWeightUpdate(offset, eta, dLoss);
             weights[offset.index] += offset.value * -eta * dLoss * wdiv;
         }
 
@@ -201,6 +202,11 @@ public class LinearModel implements WeightModel
         double dotProd = CollectionsManip.dot(weights, weights);
         return dotProd / wdiv / wdiv;
     }
+    public double perWeightUpdate(Offset offset, double eta, double dLoss)
+    {
+        return eta;
+    }
+
 
 
     //public double[] getWeights()
