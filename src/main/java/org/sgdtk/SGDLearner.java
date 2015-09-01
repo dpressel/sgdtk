@@ -15,10 +15,11 @@ public class SGDLearner implements Learner
     public static double ETA_FACTOR = 2.;
     public static double LOW_ETA_0 = 1.;
 
+    LearningRateSchedule learningRateSchedule;
     Loss lossFunction;
     double lambda;
     double eta0 = -1;
-    double numSeenTotal = 0;
+    //double numSeenTotal = 0;
     //boolean regularizedBias = false;
     private ModelFactory modelFactory = null;
     /**
@@ -60,11 +61,17 @@ public class SGDLearner implements Learner
 
     public SGDLearner(Loss loss, double lambda, double kEta, ModelFactory modelFactory)
     {
+        this(loss, lambda, kEta, modelFactory, new RobbinsMonroUpdateSchedule());
+    }
+
+    public SGDLearner(Loss loss, double lambda, double kEta, ModelFactory modelFactory, LearningRateSchedule lrUpStrategy)
+    {
         this.lossFunction = loss;
         this.lambda = lambda;
         this.eta0 = kEta;
-        this.numSeenTotal = 0;
+        //this.numSeenTotal = 0;
         this.modelFactory = modelFactory;
+        this.learningRateSchedule = lrUpStrategy;
 
     }
 
@@ -76,7 +83,8 @@ public class SGDLearner implements Learner
     @Override
     public final Model create(int wlength)
     {
-        numSeenTotal = 0;
+        //numSeenTotal = 0;
+        learningRateSchedule.reset(eta0, lambda);
         Model lm = modelFactory.newInstance(wlength);
         return lm;
     }
@@ -120,13 +128,14 @@ public class SGDLearner implements Learner
     {
         WeightModel weightModel = (WeightModel)model;
         // Robbins-Monro update
-        double eta = eta0 / (1 + lambda * eta0 * numSeenTotal);
+        double eta = learningRateSchedule.update();
+        //double eta = eta0 / (1 + lambda * eta0 * numSeenTotal);
         double y = fv.getY();
         double fx = weightModel.predict(fv);
         double dLoss = lossFunction.dLoss(fx, y);
 
         weightModel.updateWeights(fv.getX(), eta, lambda, dLoss, y);
-        ++numSeenTotal;
+
     }
 
     @Override
