@@ -51,12 +51,12 @@ public class OverlappedTrainingLifecycle
     Model model;
     boolean dense;
 
-    public OverlappedTrainingLifecycle(int epochs, int bufferSz, Learner learner, int fvWidth, File cacheFile) throws IOException
+    public OverlappedTrainingLifecycle(int epochs, int bufferSz, Learner learner, int fvWidth, File cacheFile) throws Exception
     {
         this(epochs, bufferSz, learner, fvWidth, cacheFile, false);
         
     }
-    public OverlappedTrainingLifecycle(int epochs, int bufferSz, Learner learner, int fvWidth, File cacheFile, boolean dense) throws IOException
+    public OverlappedTrainingLifecycle(int epochs, int bufferSz, Learner learner, int fvWidth, File cacheFile, boolean dense) throws Exception
     {
 
         this.epochs = epochs;

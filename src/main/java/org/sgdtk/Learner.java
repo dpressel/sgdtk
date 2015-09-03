@@ -14,7 +14,7 @@ public interface Learner
      * @param wlength The length of the feature vector
      * @return An empty but initialized model
      */
-    Model create(int wlength);
+    Model create(int wlength) throws Exception;
 
     /**
      * Train on a single pass

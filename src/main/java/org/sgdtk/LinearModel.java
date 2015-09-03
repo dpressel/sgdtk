@@ -10,29 +10,14 @@ import java.util.Arrays;
  */
 public class LinearModel implements WeightModel
 {
-    private double[] weights;
-    private double wdiv;
-    private double wbias;
+    protected double[] weights;
+    protected double wdiv;
+    protected double wbias;
 
-    /**
-     * This method performs an SGD update from a single training example.  This looks a little different
-     * than most implementations I'm aware of, mostly because of a trick that speeds the code up drastically for sparse
-     * vector by avoiding a rescale by the regularization parameters over the full vector.  You can see the typical
-     * update approach in sofia-ml and scikit-learn.  However, here, a factoring of the weight vector is employed that
-     * separates the scalar due to regularization from the loss gradient application.  The factoring is described
-     * here (under section 5.1):
-     *
-     * @param fv
-     * @param eta
-     * @see <a href="http://research.microsoft.com/pubs/192769/tricks-2012.pdf">http://research.microsoft.com/pubs/192769/tricks-2012.pdf</a>
-     */
-    public final void updateWeights(VectorN vectorN, double eta, double lambda, double dLoss, double y)
+    // Performs L2 regularization scaling
+    protected void scaleWeights(double eta, double lambda)
     {
 
-        // The wdiv is a scalar factored out of the weight vector due to regularization
-        // This prevents having to scale the entire weight vector, which is dense
-        // To handle properly, we have to account for this factoring in the model and update the
-        // weight vector on use.
         wdiv /= (1 - eta * lambda);
 
         if (wdiv > 1e5)
@@ -42,11 +27,37 @@ public class LinearModel implements WeightModel
             wdiv = 1.;
         }
 
+    }
+
+    /**
+     * This method performs an SGD update from a single training example.  This looks a little different
+     * than most implementations I'm aware of, mostly because of a trick that speeds the code up drastically for sparse
+     * vector by avoiding a rescale by the regularization parameters over the full vector.  You can see the typical
+     * update approach in sofia-ml and scikit-learn.  However, here, a factoring of the weight vector is employed that
+     * separates the scalar due to regularization from the loss gradient application.  The factoring is described
+     * here (under section 5.1):
+     *
+     * @param
+     * @param eta
+     * @see <a href="http://research.microsoft.com/pubs/192769/tricks-2012.pdf">http://research.microsoft.com/pubs/192769/tricks-2012.pdf</a>
+     */
+    public void updateWeights(VectorN vectorN, double eta, double lambda, double dLoss, double y)
+    {
+
+        // The wdiv is a scalar factored out of the weight vector due to regularization
+        // This prevents having to scale the entire weight vector, which is dense
+        // To handle properly, we have to account for this factoring in the model and update the
+        // weight vector on use.
+
+
+        scaleWeights(eta, lambda);
+
         // When we factored wdiv out, we have to account for this in our gradient update as well
         for (Offset offset : vectorN.getNonZeroOffsets())
         {
-            //double thisEta = perWeightUpdate(offset, eta, dLoss);
-            weights[offset.index] += offset.value * -eta * dLoss * wdiv;
+            double grad = dLoss * offset.value;
+            double thisEta = perWeightUpdate(offset.index, grad, eta);
+            weights[offset.index] += offset.value * -thisEta * dLoss * wdiv;
         }
 
         // This is referenced on Leon Bottou's SGD page
@@ -202,7 +213,7 @@ public class LinearModel implements WeightModel
         double dotProd = CollectionsManip.dot(weights, weights);
         return dotProd / wdiv / wdiv;
     }
-    public double perWeightUpdate(Offset offset, double eta, double dLoss)
+    public double perWeightUpdate(int index, double grad, double eta)
     {
         return eta;
     }

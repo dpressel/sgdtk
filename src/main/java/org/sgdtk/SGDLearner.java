@@ -81,7 +81,7 @@ public class SGDLearner implements Learner
      * @return
      */
     @Override
-    public final Model create(int wlength)
+    public final Model create(int wlength) throws Exception
     {
         ///numSeenTotal = 0;
         learningRateSchedule.reset(eta0, lambda);
@@ -105,6 +105,7 @@ public class SGDLearner implements Learner
         {
             preprocess(model, trainingExamples.subList(0, Math.min(1000, trainingExamples.size())));
             log.info("eta0=" + eta0);
+            learningRateSchedule.reset(eta0, lambda);
         }
 
         for (FeatureVector fv : trainingExamples)

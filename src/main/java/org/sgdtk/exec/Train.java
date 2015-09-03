@@ -48,6 +48,9 @@ public class Train
         @Parameter(description = "Number of classes", names = {"--nc"})
         public Integer numClasses = 2;
 
+        @Parameter(description = "Learning method (sgd|adagrad)", names = {"--method"})
+        public String method = "sgd";
+
 	}
 
 	public static void main(String[] args)
@@ -95,8 +98,13 @@ public class Train
                 lossFunction = new HingeLoss();
             }
 
+            boolean isAdagrad = "adagrad".equals(params.method);
+
+
             Learner learner = params.numClasses > 2 ? new MultiClassSGDLearner(params.numClasses, lossFunction, params.lambda, params.eta0) :
-                    new SGDLearner(lossFunction, params.lambda, params.eta0);
+                    new SGDLearner(lossFunction, params.lambda, params.eta0,
+                            new LinearModelFactory(isAdagrad ? AdagradLinearModel.class: LinearModel.class),
+                            isAdagrad ? new FixedLearningRateSchedule(): new RobbinsMonroUpdateSchedule());
 
             int vSz = reader.getLargestVectorSeen();
             System.out.println("Creating model with vector of size " + vSz);

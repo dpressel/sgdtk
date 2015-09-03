@@ -55,7 +55,7 @@ public class MultiClassSGDLearner implements Learner
     }
 
     @Override
-    public Model create(int wlength)
+    public Model create(int wlength) throws Exception
     {
 
         Model[] models = new Model[learners.length];
