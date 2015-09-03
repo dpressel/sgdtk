@@ -8,8 +8,8 @@ package org.sgdtk;
  * not to have to wait around cycling a bunch of parameters that wont receive any updates.
  *
  * Note that L1 regularization is not performed as summarized succintly in Dyer's notes.  This technique proved
- * slow to update parameters.  Instead we continue to capitalize on Bottou's optimization for sparse vetors,
- * instead seeking a single regularization parameter that can be applied per example.
+ * slow to update parameters.  Instead we continue to capitalize on Bottou's optimization for sparse vectors,
+ * seeking a simple regularization parameter that can be applied per example.
  *
  * To make this work, L2 regularization is done using an average
  * of the actualized per-parameter learning rates across all features for each example (time t).
