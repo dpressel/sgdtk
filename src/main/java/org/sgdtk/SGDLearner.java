@@ -211,6 +211,9 @@ public class SGDLearner implements Learner
         // If multi-class
         if (scores.length > 1)
         {
+            error = 0.0;
+            final int yidx = (int)(y - 1);
+
             // Support multi-label.  Assume for now that the cost function is going to want as input only the
             // index of the correct value. We can check that they are the same by testing the index.
             double maxv = -100000.0;
@@ -228,7 +231,8 @@ public class SGDLearner implements Learner
             {
                 error = 1;
             }
-            fx = scores[(int)y];
+
+            fx = scores[yidx];
         }
         double loss = lossFunction.loss(fx, y);
 
