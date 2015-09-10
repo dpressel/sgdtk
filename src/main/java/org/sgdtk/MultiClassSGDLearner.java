@@ -55,14 +55,14 @@ public class MultiClassSGDLearner implements Learner
     }
 
     @Override
-    public Model create(int wlength) throws Exception
+    public Model create(Object params) throws Exception
     {
 
         Model[] models = new Model[learners.length];
         for (int i = 0; i < learners.length; ++i)
         {
             learners[i] = new SGDLearner(lossFunction, lambda, eta0);
-            models[i] = learners[i].create(wlength);
+            models[i] = learners[i].create(params);
         }
         return new MultiClassWeightModel(models);
     }

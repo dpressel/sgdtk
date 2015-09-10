@@ -77,15 +77,15 @@ public class SGDLearner implements Learner
 
     /**
      * Create the model, empty but initialized
-     * @param wlength The length of the feature vector
+     * @param params For a linear model, this should be the length of the feature vector
      * @return
      */
     @Override
-    public final Model create(int wlength) throws Exception
+    public final Model create(Object params) throws Exception
     {
         ///numSeenTotal = 0;
         learningRateSchedule.reset(eta0, lambda);
-        Model lm = modelFactory.newInstance(wlength);
+        Model lm = modelFactory.newInstance(params);
         return lm;
     }
 

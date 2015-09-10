@@ -11,10 +11,10 @@ public interface Learner
 {
     /**
      * Create an empty but initialized model, with the length of the feature vector given
-     * @param wlength The length of the feature vector
+     * @param params Params needed to construct the model.  For the linear, this should be the length of feature vector
      * @return An empty but initialized model
      */
-    Model create(int wlength) throws Exception;
+    Model create(Object params) throws Exception;
 
     /**
      * Train on a single pass
