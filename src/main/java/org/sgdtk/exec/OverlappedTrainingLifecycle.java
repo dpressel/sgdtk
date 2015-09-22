@@ -136,9 +136,10 @@ public class OverlappedTrainingLifecycle
                     featureVector = new FeatureVector(fv.getY(), dense);
                 }
             }
-            trainEx.add(featureVector);
             // We can save this as-is even if sparse
             saveCachedFeatureVector(fv);
+            trainEx.add(featureVector);
+
 
 
         }
