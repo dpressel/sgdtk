@@ -35,4 +35,8 @@ public interface VectorN
     void organize();
 
     void reset();
+
+    enum Type { SPARSE, DENSE }
+
+    Type getType();
 }

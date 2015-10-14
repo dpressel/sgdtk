@@ -206,4 +206,9 @@ public class SparseVectorN implements VectorN
         this.offsets = new ArrayList<Offset>(clean);
     }
 
+    @Override
+    public Type getType()
+    {
+        return Type.SPARSE;
+    }
 }

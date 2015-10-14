@@ -5,8 +5,7 @@ import java.util.List;
 
 public class DenseVectorN implements VectorN
 {
-    double[] x;
-    int length;
+    ArrayDouble x;
 
     public DenseVectorN(VectorN source)
     {
@@ -18,45 +17,40 @@ public class DenseVectorN implements VectorN
     }
     public DenseVectorN(int length)
     {
-        this.length = length;
-        x = new double[length];
+        x = new ArrayDouble(length);
     }
     public DenseVectorN(double[] x)
     {
-        this.x = new double[x.length];
-        length = x.length;
-        System.arraycopy(x, 0, this.x, 0, length);
+        this.x = new ArrayDouble(x);
     }
-    public double [] getX()
+    public ArrayDouble getX()
     {
         return x;
-
     }
 
     @Override
     public int length()
     {
-        return length;
+        return x.size();
     }
 
 
     @Override
     public void add(double[] vec)
     {
-        assert(vec.length <= length);
-        for (int i = 0; i < vec.length; ++i)
-        {
-            x[i] += vec[i];
-        }
+        assert(vec.length <= x.size());
+        x.addn(vec);
     }
 
     @Override
     public double mag()
     {
+        int sz = x.size();
         double acc = 0.0;
-        for (int i = 0; i < x.length; ++i)
+        for (int i = 0; i < sz; ++i)
         {
-            acc += x[i] * x[i];
+            double d = x.get(i);
+            acc += d * d;
         }
         return acc;
     }
@@ -64,41 +58,43 @@ public class DenseVectorN implements VectorN
     @Override
     public double update(int i, double v)
     {
-        x[i] += v;
-        return x[i];
+        return x.addi(i, v);
+
+    }
+
+    @Override
+    public Type getType()
+    {
+        return Type.DENSE;
     }
 
     @Override
     public void add(VectorN vec)
     {
-        if (vec instanceof SparseVectorN)
+        if (vec.getType() == Type.SPARSE)
         {
             for (Offset offset : vec.getNonZeroOffsets())
             {
-                x[offset.index] += offset.value;
+                x.addi(offset.index, offset.value);
             }
         }
         else
         {
             DenseVectorN dv = (DenseVectorN)vec;
-            add(dv.getX());
+            add(dv.getX().v);
         }
     }
 
     @Override
     public void add(Offset offset)
     {
-        if (offset.index > length)
-        {
-            throw new RuntimeException("Index out of bounds! " + offset.index + ". Max is " + length);
-        }
-        x[offset.index] = offset.value;
+        x.addi(offset.index, offset.value);
     }
 
     @Override
     public void set(int i, double v)
     {
-        x[i] = v;
+        x.set(i, v);
     }
 
     @Override
@@ -109,13 +105,13 @@ public class DenseVectorN implements VectorN
         {
             for (Offset offset : vec.getNonZeroOffsets())
             {
-                acc += x[offset.index] * offset.value;
+                acc += x.get(offset.index) * offset.value;
             }
         }
         else
         {
             DenseVectorN dv = (DenseVectorN)vec;
-            return dot(dv.getX());
+            return dot(dv.getX().v);
         }
         return acc;
     }
@@ -123,36 +119,32 @@ public class DenseVectorN implements VectorN
     @Override
     public void reset()
     {
-        for (int i = 0; i < x.length; ++i)
-        {
-            x[i] = 0.;
-        }
+        x.constant(0.);
     }
 
     @Override
     public double dot(double[] vec)
     {
-        return CollectionsManip.dot(x, vec);
+        return CollectionsManip.dot(x.v, vec);
     }
 
     @Override
     public void scale(double scalar)
     {
-        for (int i = 0; i < x.length; ++i)
-        {
-            x[i] *= scalar;
-        }
+        x.scale(scalar);
     }
 
     @Override
     public List<Offset> getNonZeroOffsets()
     {
         List<Offset> offsetList = new ArrayList<Offset>();
-        for (int i = 0; i < length; ++i)
+        int sz = x.size();
+        for (int i = 0; i < sz; ++i)
         {
-            if (x[i] != 0.0)
+            double xi = x.get(i);
+            if (xi != 0.0)
             {
-                offsetList.add(new Offset(i, x[i]));
+                offsetList.add(new Offset(i, xi));
             }
         }
         return offsetList;
@@ -161,18 +153,17 @@ public class DenseVectorN implements VectorN
     @Override
     public void from(VectorN source)
     {
-        length = source.length();
-        x = new double[length];
-
+        int sz = source.length();
+        x.resize(sz);
         for (Offset offset : source.getNonZeroOffsets())
         {
-            x[offset.index] = offset.value;
+            x.set(offset.index, offset.value);
         }
     }
 
     public double at(int i)
     {
-        return x[i];
+        return x.at(i);
     }
 
     public void organize()
