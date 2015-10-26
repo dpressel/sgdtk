@@ -41,7 +41,7 @@ import java.io.RandomAccessFile;
  *
  * @author dpressel
  */
-public class OverlappedTrainingLifecycle
+public class OverlappedTrainingLifecycle implements AsyncTrainingLifecycle
 {
     private int epochs;
     TrainingExecutor trainEx;
@@ -120,6 +120,7 @@ public class OverlappedTrainingLifecycle
         }
     }
 
+    @Override
     public void add(FeatureVector fv) throws IOException
     {
         try
@@ -189,6 +190,7 @@ public class OverlappedTrainingLifecycle
         return buffer;
     }
 
+    @Override
     public Model finish() throws IOException
     {
 

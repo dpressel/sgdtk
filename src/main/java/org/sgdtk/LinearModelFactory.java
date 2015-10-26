@@ -1,6 +1,7 @@
 package org.sgdtk;
 
 import java.lang.reflect.Constructor;
+import java.util.Map;
 
 /**
  * Construct a linear model
@@ -14,19 +15,33 @@ import java.lang.reflect.Constructor;
  */
 public class LinearModelFactory implements ModelFactory
 {
-    Class<LinearModel> classValue = LinearModel.class;
+    public static final String OPTIM = "optim";
+    public static final String W_LENGTH = "wlength";
+
+    String className = LinearModel.class.getTypeName();
+    Integer wLength = null;
+
     public LinearModelFactory()
     {
 
     }
-    public LinearModelFactory(Class classValue)
+    public LinearModelFactory(String className)
     {
-        this.classValue = classValue;
+        this.className = className;
     }
 
-    public Model newInstance(int wlength) throws Exception
+    public LinearModelFactory(Class className)
     {
-        return newInstance(new Integer(wlength));
+        this.className = className.toString().replaceAll("class ", "");
+    }
+
+    @Override
+    public void configure(Map<String, Object> config) throws Exception
+    {
+        if (config.containsKey(OPTIM))
+        {
+            className = (String)config.get(OPTIM);
+        }
     }
 
     // TODO: rework this so params is more flexible!
@@ -34,21 +49,31 @@ public class LinearModelFactory implements ModelFactory
     public Model newInstance(Object params) throws Exception
     {
         // Hack for now!
-        Integer wlength = (Integer)params;
+        Integer v = (Integer)params;
+
         Constructor cons = negotiateConstructor();
-        LinearModel model = (LinearModel)cons.newInstance(wlength);
+        LinearModel model = (LinearModel)cons.newInstance(v == null ? wLength : v);
         return model;
     }
 
     private Constructor negotiateConstructor() throws NoSuchMethodException
     {
-        Constructor[] allConstructors = classValue.getDeclaredConstructors();
-        for (Constructor ctor : allConstructors) {
-            Class<?>[] pType  = ctor.getParameterTypes();
-            if (pType.length == 1 && pType[0].toGenericString().equals("int"))
+        try
+        {
+            Class classV = Class.forName(className);
+            Constructor[] allConstructors = classV.getDeclaredConstructors();
+            for (Constructor ctor : allConstructors)
             {
-                return ctor;
+                Class<?>[] pType = ctor.getParameterTypes();
+                if (pType.length == 1 && pType[0].toGenericString().equals("int"))
+                {
+                    return ctor;
+                }
             }
+        }
+        catch (ClassNotFoundException classNoEx)
+        {
+            throw new NoSuchMethodException(classNoEx.getMessage());
         }
         throw new NoSuchMethodException("No constructor found!");
     }

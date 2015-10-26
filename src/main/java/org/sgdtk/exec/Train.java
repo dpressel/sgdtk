@@ -5,6 +5,8 @@ import com.beust.jcommander.Parameter;
 
 import org.sgdtk.*;
 import org.sgdtk.SGDLearner;
+import org.sgdtk.fileio.Config;
+import org.sgdtk.fileio.JsonConfigReader;
 import org.sgdtk.fileio.SVMLightFileFeatureProvider;
 import org.sgdtk.SquaredHingeLoss;
 import org.sgdtk.MultiClassSGDLearner;
@@ -51,6 +53,9 @@ public class Train
         @Parameter(description = "Learning method (sgd|adagrad)", names = {"--method"})
         public String method = "sgd";
 
+        @Parameter(description = "Config file", names = {"--config", "--conf"})
+        public String configFile;
+
 	}
 
 	public static void main(String[] args)
@@ -76,35 +81,52 @@ public class Train
                 evalSet = reader.load(evalFile);
             }
 
-            Loss lossFunction = null;
-            if (params.loss.equalsIgnoreCase("log"))
+            Learner learner = null;
+
+            // Read all params from a config stream (easy, way)
+            if (params.configFile != null)
             {
-                System.out.println("Using log loss");
-                lossFunction = new LogLoss();
+                LearnerCreator creator = new SGDLearnerCreator();
+                JsonConfigReader configReader = new JsonConfigReader();
+                Config config = configReader.read(new File(params.configFile));
+                learner = creator.newInstance(config);
+
             }
-            else if (params.loss.startsWith("sqh"))
-            {
-                System.out.println("Using squared hinge loss");
-                lossFunction = new SquaredHingeLoss();
-            }
-            else if (params.loss.startsWith("sq"))
-            {
-                System.out.println("Using square loss");
-                lossFunction = new SquaredLoss();
-            }
+            // Build up model from command line
             else
             {
-                System.out.println("Using hinge loss");
-                lossFunction = new HingeLoss();
+                Loss lossFunction = null;
+                if (params.loss.equalsIgnoreCase("log"))
+                {
+                    System.out.println("Using log loss");
+                    lossFunction = new LogLoss();
+                }
+                else if (params.loss.startsWith("sqh"))
+                {
+                    System.out.println("Using squared hinge loss");
+                    lossFunction = new SquaredHingeLoss();
+                }
+                else if (params.loss.startsWith("sq"))
+                {
+                    System.out.println("Using square loss");
+                    lossFunction = new SquaredLoss();
+                }
+                else
+                {
+                    System.out.println("Using hinge loss");
+                    lossFunction = new HingeLoss();
+                }
+
+                boolean isAdagrad = "adagrad".equals(params.method);
+
+                ModelFactory modelFactory = new LinearModelFactory(isAdagrad ? AdagradLinearModel.class : LinearModel.class);
+
+
+                learner = params.numClasses > 2 ? new MultiClassSGDLearner(params.numClasses, lossFunction, params.lambda, params.eta0) :
+                        new SGDLearner(lossFunction, params.lambda, params.eta0,
+                                modelFactory,
+                                isAdagrad ? new FixedLearningRateSchedule() : new RobbinsMonroUpdateSchedule());
             }
-
-            boolean isAdagrad = "adagrad".equals(params.method);
-
-
-            Learner learner = params.numClasses > 2 ? new MultiClassSGDLearner(params.numClasses, lossFunction, params.lambda, params.eta0) :
-                    new SGDLearner(lossFunction, params.lambda, params.eta0,
-                            new LinearModelFactory(isAdagrad ? AdagradLinearModel.class: LinearModel.class),
-                            isAdagrad ? new FixedLearningRateSchedule(): new RobbinsMonroUpdateSchedule());
 
             int vSz = reader.getLargestVectorSeen();
             System.out.println("Creating model with vector of size " + vSz);
