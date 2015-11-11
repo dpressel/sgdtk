@@ -13,7 +13,7 @@ public class DenseVectorN implements VectorN
     }
     public DenseVectorN()
     {
-
+        x = new ArrayDouble();
     }
     public DenseVectorN(int length)
     {
@@ -154,7 +154,14 @@ public class DenseVectorN implements VectorN
     public void from(VectorN source)
     {
         int sz = source.length();
-        x.resize(sz);
+        if (x == null)
+        {
+            x = new ArrayDouble(sz);
+        }
+        else
+        {
+            x.resize(sz);
+        }
         for (Offset offset : source.getNonZeroOffsets())
         {
             x.set(offset.index, offset.value);
