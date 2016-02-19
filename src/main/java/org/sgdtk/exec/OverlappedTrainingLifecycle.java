@@ -51,6 +51,8 @@ public class OverlappedTrainingLifecycle implements AsyncTrainingLifecycle
     Model model;
     boolean dense;
 
+    double pAdd;
+
     public OverlappedTrainingLifecycle(int epochs, int bufferSz, Learner learner, int fvWidth, File cacheFile) throws Exception
     {
         this(epochs, bufferSz, learner, fvWidth, cacheFile, false);
@@ -58,10 +60,16 @@ public class OverlappedTrainingLifecycle implements AsyncTrainingLifecycle
     }
     public OverlappedTrainingLifecycle(int epochs, int bufferSz, Learner learner, int fvWidth, File cacheFile, boolean dense) throws Exception
     {
+        this(epochs, bufferSz, learner, fvWidth, cacheFile, dense, 1.0);
 
+    }
+
+    public OverlappedTrainingLifecycle(int epochs, int bufferSz, Learner learner, int fvWidth, File cacheFile, boolean dense, double pAdd) throws Exception
+    {
         this.epochs = epochs;
         this.cacheFile = cacheFile;
         this.dense = dense;
+        this.pAdd = pAdd;
         model = learner.create(fvWidth);
 
         trainEx = new RingBufferTrainingExecutor();
@@ -73,6 +81,15 @@ public class OverlappedTrainingLifecycle implements AsyncTrainingLifecycle
 
     private static final Logger log = LoggerFactory.getLogger(OverlappedTrainingLifecycle.class);
 
+
+    // Randomly sample in time
+    private void addWithProb(FeatureVector fv)
+    {
+        if (pAdd >= 1.0 || Math.random() < pAdd)
+        {
+            trainEx.add(fv);
+        }
+    }
 
     private void passN() throws IOException
     {
@@ -87,7 +104,7 @@ public class OverlappedTrainingLifecycle implements AsyncTrainingLifecycle
             randomAccessFile.read(packBuffer, 0, recordLength);
             FeatureVector fv = toFeatureVector();
             // add to ring buffer
-            trainEx.add(fv);
+            addWithProb(fv);
 
         }
 
@@ -139,7 +156,7 @@ public class OverlappedTrainingLifecycle implements AsyncTrainingLifecycle
             }
             // We can save this as-is even if sparse
             saveCachedFeatureVector(fv);
-            trainEx.add(featureVector);
+            addWithProb(featureVector);
 
 
 

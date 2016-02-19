@@ -123,6 +123,17 @@ public class SGDLearner implements Learner
         return model;
     }
 
+    /**
+     * For a binary case, predict the label (closer to -1 is no, 1 yes).  For a multiclass neural net case,
+     * this code is less obvious.  It turns out that the predict() function is ignored in this case -- its just
+     * used to force the NN to run forward prop, and the loss
+     * given is typically just -1 to support NLL, and backprop then takes care of the actual
+     * loss inside of updateWeights.  That is why the 'y' value is passed in there.  As indicated elsewhere, for multiclass
+     * models, developers should be using score(), not predict()!
+     *
+     * @param model
+     * @param fv
+     */
     @Override
     public final void trainOne(Model model, FeatureVector fv)
     {
