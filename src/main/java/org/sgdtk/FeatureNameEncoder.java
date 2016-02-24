@@ -22,14 +22,14 @@ public interface FeatureNameEncoder extends Serializable
      * @param inputStream source
      * @throws IOException
      */
-    public void load(InputStream inputStream) throws IOException;
+    void load(InputStream inputStream) throws IOException;
 
     /**
      * Serialize
      * @param outputStream target
      * @throws IOException
      */
-    public void save(OutputStream outputStream) throws IOException;
+    void save(OutputStream outputStream) throws IOException;
 
     /**
      * find this feature's index, or create (if possible).  Creation only works on implementations that support

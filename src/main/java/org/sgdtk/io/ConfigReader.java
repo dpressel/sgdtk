@@ -1,4 +1,4 @@
-package org.sgdtk.fileio;
+package org.sgdtk.io;
 
 import java.io.File;
 import java.io.IOException;

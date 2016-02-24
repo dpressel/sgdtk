@@ -24,11 +24,9 @@ package org.sgdtk;
  */
 public class AdagradLinearModel extends LinearModel
 {
-    private double[] gg;
+    private ArrayDouble gg;
 
     // TODO: Be nice and allow an app. dev. to get at these!
-    private static double ALPHA = 1;
-    private static double BETA = 1;
     private static double EPS = 1e-8;
 
     private double sumEta;
@@ -36,7 +34,7 @@ public class AdagradLinearModel extends LinearModel
     public AdagradLinearModel(int wlength)
     {
         super(wlength);
-        gg = new double[wlength];
+        gg = new ArrayDouble(wlength);
     }
 
     /**
@@ -49,14 +47,14 @@ public class AdagradLinearModel extends LinearModel
     public AdagradLinearModel(int wlength, double wdiv, double wbias)
     {
         super(wlength, wdiv, wbias);
-        gg = new double[wlength];
+        gg = new ArrayDouble(wlength);
 
     }
 
-    protected AdagradLinearModel(double[] weights, double wdiv, double wbias)
+    protected AdagradLinearModel(ArrayDouble weights, double wdiv, double wbias)
     {
         super(weights, wdiv, wbias);
-        gg = new double[weights.length];
+        gg = new ArrayDouble(weights.size());
     }
 
     /**
@@ -75,7 +73,7 @@ public class AdagradLinearModel extends LinearModel
 
         if (sumEta != 0)
         {
-            eta = sumEta / weights.length;
+            eta = sumEta / weights.size();
         }
         sumEta = 0.;
         super.scaleWeights(eta, lambda);
@@ -94,8 +92,8 @@ public class AdagradLinearModel extends LinearModel
     @Override
     public double perWeightUpdate(int index, double grad, double eta)
     {
-        gg[index] = ALPHA * gg[index] + BETA * grad * grad;
-        double etaThis = eta / Math.sqrt(gg[index] + EPS);
+        gg.set(index, gg.get(index) + grad * grad);
+        double etaThis = eta / Math.sqrt(gg.get(index) + EPS);
         sumEta += etaThis;
         return etaThis;
     }

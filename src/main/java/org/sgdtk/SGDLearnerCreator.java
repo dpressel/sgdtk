@@ -1,6 +1,6 @@
 package org.sgdtk;
 
-import org.sgdtk.fileio.Config;
+import org.sgdtk.io.Config;
 
 import java.lang.reflect.Constructor;
 import java.util.HashMap;

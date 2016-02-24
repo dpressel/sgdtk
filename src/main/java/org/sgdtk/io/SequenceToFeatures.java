@@ -1,4 +1,4 @@
-package org.sgdtk.fileio;
+package org.sgdtk.io;
 
 import org.sgdtk.FeatureNameEncoder;
 import org.sgdtk.Offset;

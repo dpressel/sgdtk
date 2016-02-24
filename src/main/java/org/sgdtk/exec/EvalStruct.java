@@ -3,9 +3,8 @@ package org.sgdtk.exec;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import org.sgdtk.FeatureNameEncoder;
-import org.sgdtk.LazyFeatureDictionaryEncoder;
 import org.sgdtk.Metrics;
-import org.sgdtk.fileio.CRFXXTemplateLoader;
+import org.sgdtk.io.CRFXXTemplateLoader;
 import org.sgdtk.struct.*;
 
 import java.io.File;

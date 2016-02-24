@@ -1,4 +1,4 @@
-package org.sgdtk.fileio;
+package org.sgdtk.io;
 
 import org.sgdtk.struct.SequenceProvider;
 import org.sgdtk.struct.State;

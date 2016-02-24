@@ -3,9 +3,9 @@ package org.sgdtk.exec;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import org.sgdtk.*;
-import org.sgdtk.fileio.Config;
-import org.sgdtk.fileio.JsonConfigReader;
-import org.sgdtk.fileio.SVMLightFileFeatureProvider;
+import org.sgdtk.io.Config;
+import org.sgdtk.io.JsonConfigReader;
+import org.sgdtk.io.SVMLightFileFeatureProvider;
 
 import java.io.File;
 import java.io.FileOutputStream;

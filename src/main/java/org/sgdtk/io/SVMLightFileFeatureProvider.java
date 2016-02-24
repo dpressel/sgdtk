@@ -1,4 +1,4 @@
-package org.sgdtk.fileio;
+package org.sgdtk.io;
 
 import org.sgdtk.FeatureProvider;
 import org.sgdtk.FeatureVector;

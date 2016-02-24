@@ -122,6 +122,13 @@ public class DenseVectorN implements VectorN
         x.constant(0.);
     }
 
+
+    @Override
+    public double dot(ArrayDouble vec)
+    {
+        return dot(vec.v);
+    }
+
     @Override
     public double dot(double[] vec)
     {

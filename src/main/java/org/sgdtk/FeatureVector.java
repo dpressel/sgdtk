@@ -70,6 +70,11 @@ public class FeatureVector
     {
         return x.dot(vec);
     }
+
+    public double dot(ArrayDouble vec)
+    {
+        return x.dot(vec);
+    }
     
     // This is poor SoC.  Dense vectors should know how to handle themselves
     public List<Offset> getNonZeroOffsets()

@@ -140,14 +140,10 @@ public class SGDLearner implements Learner
         WeightModel weightModel = (WeightModel)model;
 
         double eta = learningRateSchedule.update();
-        /// Robbins-Monro update
-        /// double eta = eta0 / (1 + lambda * eta0 * numSeenTotal);
         double y = fv.getY();
         double fx = weightModel.predict(fv);
         double dLoss = lossFunction.dLoss(fx, y);
-
         weightModel.updateWeights(fv.getX(), eta, lambda, dLoss, y);
-        /// ++numSeenTotal;
 
     }
 

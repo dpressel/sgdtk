@@ -190,6 +190,12 @@ public class SparseVectorN implements VectorN
         return acc;
     }
 
+    @Override
+    public double dot(ArrayDouble vec)
+    {
+        return dot(vec.v);
+    }
+
     public final void organize()
     {
         Collections.sort(offsets);

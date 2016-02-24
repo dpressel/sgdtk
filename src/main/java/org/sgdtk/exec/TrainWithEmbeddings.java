@@ -2,16 +2,14 @@ package org.sgdtk.exec;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
-
 import org.sgdtk.*;
-import org.sgdtk.SGDLearner;
 import org.sgdtk.io.Config;
 import org.sgdtk.io.JsonConfigReader;
 import org.sgdtk.io.SVMLightFileFeatureProvider;
-import org.sgdtk.SquaredHingeLoss;
-import org.sgdtk.MultiClassSGDLearner;
+import org.sgdtk.io.SumWordVecDatasetReader;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.util.Collections;
 import java.util.List;
 
@@ -20,7 +18,7 @@ import java.util.List;
  *
  * @author dpressel
  */
-public class Train
+public class TrainWithEmbeddings
 {
 
     public static class Params
@@ -56,6 +54,9 @@ public class Train
         @Parameter(description = "Config file", names = {"--config", "--conf"})
         public String configFile;
 
+        @Parameter(description = "Embeddings", names = { "--embed"}, required = true)
+        public String embeddings;
+
 	}
 
 	public static void main(String[] args)
@@ -68,7 +69,7 @@ public class Train
 
             File trainFile = new File(params.train);
 
-            SVMLightFileFeatureProvider reader = new SVMLightFileFeatureProvider();
+            SumWordVecDatasetReader reader = new SumWordVecDatasetReader(params.embeddings);
 
             long l0 = System.currentTimeMillis();
             List<FeatureVector> trainingSet = reader.load(trainFile);
@@ -119,13 +120,13 @@ public class Train
 
                 boolean isAdagrad = "adagrad".equals(params.method);
 
-                ModelFactory modelFactory = new LinearModelFactory(isAdagrad ? AdagradLinearModel.class : LinearModel.class);
+                ModelFactory modelFactory = new LinearModelFactory(isAdagrad ? AdagradLinearModel.class : SimpleLinearModel.class);
 
 
                 learner = params.numClasses > 2 ? new MultiClassSGDLearner(params.numClasses, lossFunction, params.lambda, params.eta0) :
                         new SGDLearner(lossFunction, params.lambda, params.eta0,
-                                modelFactory,
-                                isAdagrad ? new FixedLearningRateSchedule() : new RobbinsMonroUpdateSchedule());
+                                modelFactory, new FixedLearningRateSchedule());
+                                //isAdagrad ? new FixedLearningRateSchedule() : new RobbinsMonroUpdateSchedule());
             }
 
             int vSz = reader.getLargestVectorSeen();

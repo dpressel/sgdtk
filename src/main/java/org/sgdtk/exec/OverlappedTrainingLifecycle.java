@@ -158,8 +158,6 @@ public class OverlappedTrainingLifecycle implements AsyncTrainingLifecycle
             saveCachedFeatureVector(fv);
             addWithProb(featureVector);
 
-
-
         }
         catch (IOException ioEx)
         {

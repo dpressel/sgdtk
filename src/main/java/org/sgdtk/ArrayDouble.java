@@ -267,4 +267,14 @@ public class ArrayDouble
             v[i] *= from.v[i];
         }
     }
+
+    public double dot(ArrayDouble vec)
+    {
+        return dot(vec.v);
+    }
+
+    public double dot(double[] vec)
+    {
+        return CollectionsManip.dot(v, vec);
+    }
 }

@@ -12,6 +12,8 @@ public interface VectorN
 
     double dot(double[] vec);
 
+    double dot(ArrayDouble vec);
+
     double dot(VectorN vec);
 
     double update(int i, double v);

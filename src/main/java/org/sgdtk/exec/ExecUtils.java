@@ -1,8 +1,8 @@
 package org.sgdtk.exec;
 
 import org.sgdtk.*;
-import org.sgdtk.fileio.CONLLFileSentenceProvider;
-import org.sgdtk.fileio.SequenceToFeatures;
+import org.sgdtk.io.CONLLFileSentenceProvider;
+import org.sgdtk.io.SequenceToFeatures;
 import org.sgdtk.struct.*;
 
 import java.io.File;
@@ -140,7 +140,7 @@ public final class ExecUtils
     /**
      * Create a joint encoder from a CONLL2000 training file.
      * This method is actually fairly useful, and probably should be extracted into the library section
-     * (possibly fileio).
+     * (possibly io).
      *
      * @param trainingFileName
      * @param minValue

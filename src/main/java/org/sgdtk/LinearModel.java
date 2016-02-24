@@ -10,9 +10,10 @@ import java.util.Arrays;
  */
 public class LinearModel implements WeightModel
 {
-    protected double[] weights;
+    protected ArrayDouble weights;
     protected double wdiv;
     protected double wbias;
+    public static final double BIAS_LR_SCALE = 0.01;
 
     // Performs L2 regularization scaling
     protected void scaleWeights(double eta, double lambda)
@@ -23,7 +24,7 @@ public class LinearModel implements WeightModel
         if (wdiv > 1e5)
         {
             final double sf = 1.0 / wdiv;
-            CollectionsManip.scaleInplace(weights, sf);
+            weights.scale(sf);
             wdiv = 1.;
         }
 
@@ -49,7 +50,6 @@ public class LinearModel implements WeightModel
         // To handle properly, we have to account for this factoring in the model and update the
         // weight vector on use.
 
-
         scaleWeights(eta, lambda);
 
         // When we factored wdiv out, we have to account for this in our gradient update as well
@@ -57,18 +57,11 @@ public class LinearModel implements WeightModel
         {
             double grad = dLoss * offset.value;
             double thisEta = perWeightUpdate(offset.index, grad, eta);
-            weights[offset.index] += offset.value * -thisEta * dLoss * wdiv;
+            weights.addi(offset.index, offset.value * -thisEta * dLoss * wdiv);
         }
 
-        // This is referenced on Leon Bottou's SGD page
-        double etab = eta * 0.01;
-
-        // The SGD code supports bias regularization only with an ifdef which defaults to off
-        //if (regularizedBias)
-        //{
-        //    wbias *= (1 - etab * lambda);
-        //}
-        wbias += -etab * dLoss;
+        // This is scaling referenced on Leon Bottou's SGD page
+        wbias += -eta * BIAS_LR_SCALE * dLoss;
 
     }
 
@@ -103,10 +96,10 @@ public class LinearModel implements WeightModel
         wdiv = objectInputStream.readDouble();
         wbias = objectInputStream.readDouble();
         int sz = (int) objectInputStream.readLong();
-        weights = new double[sz];
+        weights = new ArrayDouble(sz);
         for (int i = 0; i < sz; ++i)
         {
-            weights[i] = objectInputStream.readDouble();
+            weights.set(i, objectInputStream.readDouble());
         }
         objectInputStream.close();
 
@@ -124,11 +117,11 @@ public class LinearModel implements WeightModel
         ObjectOutputStream objectOutputStream = new ObjectOutputStream(outputStream);
         objectOutputStream.writeDouble(wdiv);
         objectOutputStream.writeDouble(wbias);
-        long sz = (long) weights.length;
+        long sz = (long) weights.size();
         objectOutputStream.writeLong(sz);
-        for (int i = 0; i < weights.length; ++i)
+        for (int i = 0; i < sz; ++i)
         {
-            objectOutputStream.writeDouble(weights[i]);
+            objectOutputStream.writeDouble(weights.get(i));
         }
         objectOutputStream.close();
     }
@@ -148,16 +141,15 @@ public class LinearModel implements WeightModel
      */
     public LinearModel(int wlength, double wdiv, double wbias)
     {
-        this.weights = new double[wlength];
-        Arrays.fill(this.weights, 0);
+        this.weights = new ArrayDouble(wlength, 0);
         this.wdiv = wdiv;
         this.wbias = wbias;
     }
 
-    protected LinearModel(double[] weights, double wdiv, double wbias)
+    protected LinearModel(ArrayDouble weights, double wdiv, double wbias)
     {
-        this.weights = new double[weights.length];
-        System.arraycopy(weights, 0, this.weights, 0, weights.length);
+        this.weights = new ArrayDouble(weights.size());
+        weights.copyTo(this.weights);
         this.wdiv = wdiv;
         this.wbias = wbias;
     }
@@ -210,19 +202,12 @@ public class LinearModel implements WeightModel
     @Override
     public final double mag()
     {
-        double dotProd = CollectionsManip.dot(weights, weights);
+        double dotProd = weights.dot(weights);
         return dotProd / wdiv / wdiv;
     }
     public double perWeightUpdate(int index, double grad, double eta)
     {
         return eta;
     }
-
-
-
-    //public double[] getWeights()
-    //{
-    //    return weights;
-    //}
 
 }

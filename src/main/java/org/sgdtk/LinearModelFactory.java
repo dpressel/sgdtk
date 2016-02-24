@@ -52,7 +52,7 @@ public class LinearModelFactory implements ModelFactory
         Integer v = (Integer)params;
 
         Constructor cons = negotiateConstructor();
-        LinearModel model = (LinearModel)cons.newInstance(v == null ? wLength : v);
+        WeightModel model = (WeightModel)cons.newInstance(v == null ? wLength : v);
         return model;
     }
 
