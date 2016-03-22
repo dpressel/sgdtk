@@ -30,6 +30,10 @@ The library was developed and tested in Intellij using Java 8, but can be built,
 should work on lower Java versions.  The only dependencies in the library currently are JCommander for easy command
 line parsing, slf4j/logback for logging, and LMAX disruptor for fast contention-free ring buffers.
 
+You can find more background on this project here:
+
+https://rawgit.com/dpressel/Meetups/master/nlp-meetup-2016-02-25/presentation.html
+
 ## Loss Functions
 
 The usual suspects here: hinge, log, squared-hinge, squared (L2) (which is absent from SGD)
