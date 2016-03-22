@@ -92,8 +92,7 @@ model.save(new FileOutputStream("svm.model"));
 
 ```{java}
 ModelFactory modelFactory = new LinearModelFactory();
-Learner learner = new SGDLearner(lossFunction, lambda, eta, modelFactory,
-                                isAdagrad ? new FixedLearningRateSchedule() : new RobbinsMonroUpdateSchedule());
+Learner learner = new SGDLearner(lossFunction, lambda, eta, modelFactory);
 OverlappedTrainingRunner asyncTrainer = new OverlappedTrainingRunner(learner);
 asyncTrainer.setEpochs(params.epochs);
 asyncTrainer.setBufferSz(params.bufferSize);
