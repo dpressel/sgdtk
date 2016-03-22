@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -98,17 +99,18 @@ public class RingBufferTrainingExecutor implements TrainingExecutor
         Model model;
         private long lastTime;
         private AtomicInteger currentEpoch = new AtomicInteger();
-
+        private List<TrainingEventListener> listeners;
         /**
          * Take in the learner and model and train
          * @param learner The learner
          * @param model The initialized but empty model
          */
-        public MessageEventHandler(Learner learner, Model model)
+        public MessageEventHandler(Learner learner, Model model, List<TrainingEventListener> listeners)
         {
             this.learner = learner;
             this.model = model;
             lastTime = System.currentTimeMillis();
+            this.listeners = listeners;
         }
 
         /**
@@ -131,6 +133,11 @@ public class RingBufferTrainingExecutor implements TrainingExecutor
                 lastTime = tNow;
                 int currentEpoch1Based = currentEpoch.incrementAndGet();
 
+
+                for (TrainingEventListener listener : listeners)
+                {
+                    listener.onEpochEnd(learner, model, diff);
+                }
                 log.info("Epoch " + currentEpoch1Based + " completed in " + diff + "s");
                 return;
 
@@ -161,7 +168,7 @@ public class RingBufferTrainingExecutor implements TrainingExecutor
      * @param bufferSize The size of the internal buffer to train from
      */
     @Override
-    public void initialize(Learner learner, Model model, int numEpochs, File cacheFile, int bufferSize)
+    public void initialize(Learner learner, Model model, int numEpochs, File cacheFile, int bufferSize, List<TrainingEventListener> listeners)
     {
 
         this.numEpochs = numEpochs;
@@ -169,7 +176,7 @@ public class RingBufferTrainingExecutor implements TrainingExecutor
         MessageEventFactory factory = new MessageEventFactory();
         WaitStrategy waitStrategy = (strategy == Strategy.YIELD) ? new YieldingWaitStrategy(): new BusySpinWaitStrategy();
         disruptor = new Disruptor<MessageEvent>(factory, ExecUtils.nextPowerOf2(bufferSize), executor, ProducerType.SINGLE, waitStrategy);
-        handler = new MessageEventHandler(learner, model);
+        handler = new MessageEventHandler(learner, model, listeners);
         disruptor.handleEventsWith(handler);
         this.cacheFile = cacheFile;
 

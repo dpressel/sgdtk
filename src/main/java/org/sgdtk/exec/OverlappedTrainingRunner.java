@@ -8,6 +8,8 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Utility class to make it easy to do VW-like overlapped trainining as part of an API.
@@ -41,51 +43,46 @@ import java.io.RandomAccessFile;
  *
  * @author dpressel
  */
-public class OverlappedTrainingLifecycle implements AsyncTrainingLifecycle
+public class OverlappedTrainingRunner implements AsyncTrainingRunner
 {
-    private int epochs;
+    private int epochs = 5;
     TrainingExecutor trainEx;
-    File cacheFile;
+    private File cacheFile;
     RandomAccessFile randomAccessFile;
     byte[] packBuffer;
-    Model model;
-    boolean dense;
-
-    double pAdd;
-
-    public OverlappedTrainingLifecycle(int epochs, int bufferSz, Learner learner, int fvWidth, File cacheFile) throws Exception
+    private boolean dense = false;
+    private List<TrainingEventListener> listeners = new ArrayList<>();
+    private double probAdd = 1.0;
+    private Learner learner;
+    private Model model;
+    private int bufferSz = 1024;
+    private Object learnerUserData;
+    // Create, don't start
+    public OverlappedTrainingRunner(Learner learner)
     {
-        this(epochs, bufferSz, learner, fvWidth, cacheFile, false);
-        
+        this.learner = learner;
     }
-    public OverlappedTrainingLifecycle(int epochs, int bufferSz, Learner learner, int fvWidth, File cacheFile, boolean dense) throws Exception
+    public void start() throws Exception
     {
-        this(epochs, bufferSz, learner, fvWidth, cacheFile, dense, 1.0);
-
-    }
-
-    public OverlappedTrainingLifecycle(int epochs, int bufferSz, Learner learner, int fvWidth, File cacheFile, boolean dense, double pAdd) throws Exception
-    {
-        this.epochs = epochs;
-        this.cacheFile = cacheFile;
-        this.dense = dense;
-        this.pAdd = pAdd;
-        model = learner.create(fvWidth);
-
+        if (cacheFile == null)
+        {
+            cacheFile = File.createTempFile("oltc", "cache");
+            cacheFile.deleteOnExit();
+        }
+        model = learner.create(getLearnerUserData());
         trainEx = new RingBufferTrainingExecutor();
-
         initCache();
-        trainEx.initialize(learner, model, epochs, cacheFile, bufferSz);
+        trainEx.initialize(learner, model, epochs, cacheFile, bufferSz, listeners);
         trainEx.start();
     }
 
-    private static final Logger log = LoggerFactory.getLogger(OverlappedTrainingLifecycle.class);
+    private static final Logger log = LoggerFactory.getLogger(OverlappedTrainingRunner.class);
 
 
     // Randomly sample in time
     private void addWithProb(FeatureVector fv)
     {
-        if (pAdd >= 1.0 || Math.random() < pAdd)
+        if (probAdd >= 1.0 || Math.random() < probAdd)
         {
             trainEx.add(fv);
         }
@@ -95,7 +92,7 @@ public class OverlappedTrainingLifecycle implements AsyncTrainingLifecycle
     {
 
         // Get FV from file
-        randomAccessFile = new RandomAccessFile(cacheFile, "r");
+        randomAccessFile = new RandomAccessFile(getCacheFile(), "r");
 
         while (randomAccessFile.getFilePointer() < randomAccessFile.length())
         {
@@ -117,7 +114,7 @@ public class OverlappedTrainingLifecycle implements AsyncTrainingLifecycle
     private FeatureVector toFeatureVector()
     {
         FeatureVector fv = ExecUtils.readFeatureVectorFromBuffer(packBuffer);
-        if (dense)
+        if (isDense())
         {
             DenseVectorN dense = new DenseVectorN(fv.getX());
             fv = new FeatureVector(fv.getY(), dense);
@@ -129,11 +126,11 @@ public class OverlappedTrainingLifecycle implements AsyncTrainingLifecycle
     private static final int PACK_BUFFER_SZ = 262144;
     private void initCache() throws IOException
     {
-        if (epochs > 1)
+        if (getEpochs() > 1)
         {
             packBuffer = new byte[PACK_BUFFER_SZ];
             //cacheFile = File.createTempFile("sgd", ".cache", cacheDir);
-            randomAccessFile = new RandomAccessFile(cacheFile, "rw");
+            randomAccessFile = new RandomAccessFile(getCacheFile(), "rw");
         }
     }
 
@@ -146,7 +143,7 @@ public class OverlappedTrainingLifecycle implements AsyncTrainingLifecycle
             
             // Not really sure this is a good way to do this, but then again
             // I dont have a lot of good dense use-cases right now.
-            if (dense)
+            if (isDense())
             {
                 if (fv.getX() instanceof SparseVectorN)
                 {
@@ -178,7 +175,7 @@ public class OverlappedTrainingLifecycle implements AsyncTrainingLifecycle
 
     private void saveCachedFeatureVector(FeatureVector fv) throws IOException
     {
-        if (epochs > 1)
+        if (getEpochs() > 1)
         {
             // Figure out how many bytes we need to make this work
             int numBytes = ExecUtils.getByteSizeForFeatureVector(fv.getNonZeroOffsets().size());
@@ -217,7 +214,7 @@ public class OverlappedTrainingLifecycle implements AsyncTrainingLifecycle
             }
 
             signalEndEpoch();
-            for (int i = 1; i < epochs; ++i)
+            for (int i = 1; i < getEpochs(); ++i)
             {
                 passN();
                 log.info("Completed pass " + (i + 1));
@@ -237,8 +234,86 @@ public class OverlappedTrainingLifecycle implements AsyncTrainingLifecycle
 
     }
 
+    @Override
+    public void addListener(TrainingEventListener listener)
+    {
+        this.getListeners().add(listener);
+    }
+
+
     private void signalEndEpoch()
     {
         trainEx.add(null);
+
+    }
+
+    public int getEpochs()
+    {
+        return epochs;
+    }
+
+    public void setEpochs(int epochs)
+    {
+        this.epochs = epochs;
+    }
+
+    public File getCacheFile()
+    {
+        return cacheFile;
+    }
+
+    public void setCacheFile(File cacheFile)
+    {
+        this.cacheFile = cacheFile;
+    }
+
+    public boolean isDense()
+    {
+        return dense;
+    }
+
+    public void setDense(boolean dense)
+    {
+        this.dense = dense;
+    }
+
+    public List<TrainingEventListener> getListeners()
+    {
+        return listeners;
+    }
+
+    public void setListeners(List<TrainingEventListener> listeners)
+    {
+        this.listeners = listeners;
+    }
+
+    public double getProbAdd()
+    {
+        return probAdd;
+    }
+
+    public void setProbAdd(double probAdd)
+    {
+        this.probAdd = probAdd;
+    }
+
+    public int getBufferSz()
+    {
+        return bufferSz;
+    }
+
+    public void setBufferSz(int bufferSz)
+    {
+        this.bufferSz = bufferSz;
+    }
+
+    public Object getLearnerUserData()
+    {
+        return learnerUserData;
+    }
+
+    public void setLearnerUserData(Object learnerUserData)
+    {
+        this.learnerUserData = learnerUserData;
     }
 }

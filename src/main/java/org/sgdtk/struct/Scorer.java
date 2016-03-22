@@ -4,6 +4,7 @@ import org.sgdtk.CollectionsManip;
 import org.sgdtk.Offset;
 
 import java.util.Arrays;
+import java.util.List;
 
 /**
  * Workhorse of CRF model.  This class probably should be made into an inner class of {@link org.sgdtk.struct.CRFModel}
@@ -45,15 +46,12 @@ class Scorer
         compute();
     }
 
-
-    void updateU(double[] g, int pos, int lasty, int numy, double eta)
+    void update(double[] g, int off, int numy, double eta, List<Offset> offsets)
     {
         double wscale = model.getWscale();
         double[] weights = model.getWeights();
-        int off = lasty;
         double gain = eta / wscale;
-
-        for (Offset offset : sequence.getOffsetsForU(pos))
+        for (Offset offset : offsets)
         {
             int l = offset.index + off;
             for (int k = 0; k < numy; ++k, ++l)
@@ -63,24 +61,14 @@ class Scorer
         }
     }
 
+    void updateU(double[] g, int pos, int lasty, int numy, double eta)
+    {
+        update(g, lasty, numy, eta, sequence.getOffsetsForU(pos));
+    }
+
     void updateB(double[] g, int pos, int lasty, int y, int numy, double eta)
     {
-
-        double wscale = model.getWscale();
-        double[] weights = model.getWeights();
-        double gain = eta / wscale;
-
-        int off = y * numLabels + lasty;
-
-        for (Offset offset : sequence.getOffsetsForB(pos))
-        {
-
-            int l = offset.index + off;
-            for (int k = 0; k < numy; ++k, ++l)
-            {
-                weights[l] += g[k] * offset.value * gain;
-            }
-        }
+        update(g, y * numLabels + lasty, numy, eta, sequence.getOffsetsForB(pos));
     }
 
     /**

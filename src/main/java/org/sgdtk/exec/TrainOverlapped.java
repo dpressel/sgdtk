@@ -9,6 +9,7 @@ import org.sgdtk.io.SVMLightFileFeatureProvider;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.util.List;
 
 /**
  * Train a classifier using some loss function using SGD.  Unlike Train, File IO is overlapped with processing
@@ -67,6 +68,18 @@ public class TrainOverlapped
         @Parameter(description = "Config file", names = {"--config", "--conf"})
         public String configFile;
 
+    }
+
+    private static void showMetrics(Metrics metrics, String pre)
+    {
+        System.out.println("========================================================");
+        System.out.println(pre);
+        System.out.println("========================================================");
+
+        System.out.println("\tLoss = " + metrics.getLoss());
+        System.out.println("\tCost = " + metrics.getCost());
+        System.out.println("\tError = " + 100*metrics.getError());
+        System.out.println("--------------------------------------------------------");
     }
 
     public static void main(String[] args)
@@ -139,11 +152,36 @@ public class TrainOverlapped
             }
 
             // Now start a thread for File IO, and then pull data until we hit the number of epochs
-            File cacheFile = new File(params.train + ".cache");
+            // File cacheFile = new File(params.train + ".cache");
 
-            OverlappedTrainingLifecycle trainingLifecycle = new OverlappedTrainingLifecycle(params.epochs, params.bufferSize, learner, dims.width, cacheFile);
+            OverlappedTrainingRunner trainingLifecycle = new OverlappedTrainingRunner(learner);
+            trainingLifecycle.setEpochs(params.epochs);
+            trainingLifecycle.setBufferSz(params.bufferSize);
+            trainingLifecycle.setLearnerUserData(dims.width);
+            // trainingLifecycle.setCacheFile(cacheFile);
+
+            SVMLightFileFeatureProvider evalReader = new SVMLightFileFeatureProvider();
+
+            List<FeatureVector> evalSet = evalReader.load(new File(params.eval));
 
 
+            trainingLifecycle.addListener(new TrainingEventListener()
+            {
+
+
+                @Override
+                public void onEpochEnd(Learner learner, Model model, double sec)
+                {
+                    if (evalSet != null)
+                    {
+                        Metrics metrics = new Metrics();
+                        learner.eval(model, evalSet, metrics);
+                        showMetrics(metrics, "Test Set Eval Metrics");
+                    }
+                }
+            });
+
+            trainingLifecycle.start();
             //Learner learner = new SGDLearner(lossFunction, params.lambda, params.eta0);
 
             SVMLightFileFeatureProvider fileReader = new SVMLightFileFeatureProvider();
@@ -165,11 +203,7 @@ public class TrainOverlapped
                 double wnorm = ((LinearModel)model).mag();
                 System.out.println("wnorm=" + wnorm);
             }
-            //if (evalSet != null)
-            //{
-            //    learner.eval(model, evalSet, metrics);
-            //    showMetrics(metrics, "Test Set Eval Metrics");
-            //}
+
 
             double elapsed = (System.currentTimeMillis() - t0) / 1000.;
 

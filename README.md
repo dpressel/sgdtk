@@ -50,3 +50,91 @@ I considered switching the basic linear algebra routines over to use jblas, but 
 the native operations are actually slower and the jblas package's JavaBlas class (which performs the typical BLAS
 operations in java) is equivalent to what is performed here, so for simplicity, all operations are performed within the library.
 
+## Simple example (binary SVM)
+
+```{java}
+ModelFactory modelFactory = new LinearModelFactory();
+Learner learner = new SGDLearner(new HingeLoss(), lambda, eta, modelFactory);
+int featureVectorSz = reader.getLargestVectorSeen();
+Model model = learner.create(featureVectorSz);
+
+double totalTrainingElapsed = 0.;
+
+for (int i = 0; i < params.epochs; ++i)
+{
+    Collections.shuffle(trainingSet);
+    System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+    System.out.println("EPOCH: " + (i + 1));
+    Metrics metrics = new Metrics();
+    double t0 = System.currentTimeMillis();
+    learner.trainEpoch(model, trainingSet);
+    double elapsedThisEpoch = (System.currentTimeMillis() - t0) /1000.;
+    System.out.println("Epoch training time " + elapsedThisEpoch + "s");
+    totalTrainingElapsed += elapsedThisEpoch;
+
+    learner.eval(model, trainingSet, metrics);
+    showMetrics(metrics, "Training Set Eval Metrics");
+    metrics.clear();
+
+    if (evalSet != null)
+    {
+        learner.eval(model, evalSet, metrics);
+        showMetrics(metrics, "Test Set Eval Metrics");
+    }
+} 
+
+System.out.println("Total training time " + totalTrainingElapsed + "s");
+model.save(new FileOutputStream("svm.model"));
+
+```
+
+## Example showing overlapped IO
+
+```{java}
+ModelFactory modelFactory = new LinearModelFactory();
+Learner learner = new SGDLearner(lossFunction, lambda, eta, modelFactory,
+                                isAdagrad ? new FixedLearningRateSchedule() : new RobbinsMonroUpdateSchedule());
+OverlappedTrainingRunner asyncTrainer = new OverlappedTrainingRunner(learner);
+asyncTrainer.setEpochs(params.epochs);
+asyncTrainer.setBufferSz(params.bufferSize);
+asyncTrainer.setLearnerUserData(featureVectorSz);
+
+SVMLightFileFeatureProvider evalReader = new SVMLightFileFeatureProvider();
+List<FeatureVector> evalSet = evalReader.load(new File(params.eval));
+
+asyncTrainer.addListener(new TrainingEventListener()
+{
+    @Override
+    public void onEpochEnd(Learner learner, Model model, double sec)
+    {
+        if (evalSet != null)
+        {
+            Metrics metrics = new Metrics();
+            learner.eval(model, evalSet, metrics);
+            showMetrics(metrics, "Test Set Eval Metrics");
+        }
+    }
+});
+
+asyncTrainer.start();
+            
+SVMLightFileFeatureProvider fileReader = new SVMLightFileFeatureProvider();
+fileReader.open(trainFile);
+
+FeatureVector fv;
+
+while ((fv = fileReader.next()) != null)
+{
+    asyncTrainer.add(fv);
+}
+
+Model model = asyncTrainer.finish();
+double elapsed = (System.currentTimeMillis() - t0) / 1000.;
+System.out.println("Overlapped training completed in " + elapsed + "s");
+model.save(new FileOutputStream("svm.model"));
+
+```
+
+## Other examples
+
+There are some complete command line programs contained in the 'exec' area that can be used for different types of simple tasks, but this is mainly intended as a library that you can use to integrate SGD into your own applications.  I used this library to implement the NBSVM algorithm using SGD and making use of overlapped IO (https://github.com/dpressel/nbsvm-xl).  I also wrote a simple Torch-like neural net package in Java which depends on this library (https://github.com/dpressel/n3rd).

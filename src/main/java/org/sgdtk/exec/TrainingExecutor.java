@@ -5,6 +5,7 @@ import org.sgdtk.Learner;
 import org.sgdtk.Model;
 
 import java.io.File;
+import java.util.List;
 
 /**
  * Simple interface for scheduling training data onto a queue and processing in overlapped fashion
@@ -25,8 +26,9 @@ public interface TrainingExecutor
      * @param numEpochs The number of epochs
      * @param cacheFile The cache file to use
      * @param bufferSize The size of the internal buffer to train from
+     * @param listeners Any listeners which should be triggered on key lifecycle events
      */
-    void initialize(Learner learner, Model model, int numEpochs, File cacheFile, int bufferSize);
+    void initialize(Learner learner, Model model, int numEpochs, File cacheFile, int bufferSize, List<TrainingEventListener> listeners);
 
     /**
      * Start the processing

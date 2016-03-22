@@ -16,7 +16,7 @@ public interface Learner
      */
     Model create(Object params) throws Exception;
 
-    //AsyncTrainingLifecycle initiate(Object params) throws Exception;
+    //AsyncTrainingRunner initiate(Object params) throws Exception;
 
     /**
      * Train on a single pass
