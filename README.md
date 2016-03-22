@@ -136,4 +136,4 @@ model.save(new FileOutputStream("svm.model"));
 
 ## Other examples
 
-There are some complete command line programs contained in the 'exec' area that can be used for different types of simple tasks, but this is mainly intended as a library that you can use to integrate SGD into your own applications.  I used this library to implement the NBSVM algorithm using SGD and making use of overlapped IO (https://github.com/dpressel/nbsvm-xl).  I also wrote a simple Torch-like neural net package in Java which depends on this library (https://github.com/dpressel/n3rd).
+There are some complete command line programs contained in the 'exec' area that can be used for different types of simple tasks, but this is mainly intended as a library that you can use to integrate SGD into your own applications.  I used this library to implement the NBSVM algorithm using SGD and making use of overlapped IO (https://github.com/dpressel/nbsvm-xl).  I also wrote a simple Torch 'nn'-like neural net package in Java which depends on this library (https://github.com/dpressel/n3rd).
