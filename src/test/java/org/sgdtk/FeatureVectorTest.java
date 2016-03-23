@@ -7,7 +7,6 @@ import java.io.RandomAccessFile;
 import java.util.List;
 
 import static junit.framework.TestCase.assertEquals;
-import static junit.framework.TestCase.assertTrue;
 
 public class FeatureVectorTest
 {
@@ -45,27 +44,17 @@ public class FeatureVectorTest
         }
 
         FeatureVector fv = new FeatureVector(1, dv);
-        UnsafeMemory memory = fv.denseSerialize(null);
 
         File tempFile = File.createTempFile("dense", "ser");
         tempFile.deleteOnExit();
 
         RandomAccessFile randomAccessFile = new RandomAccessFile(tempFile, "rw");
-        // Write bytes out
-        long inBuffer = memory.getPos();
-        randomAccessFile.writeLong(inBuffer);
-        randomAccessFile.write(memory.getBuffer(), 0, (int) inBuffer);
+        fv.serializeTo(randomAccessFile, null);
         randomAccessFile.close();
 
         randomAccessFile = new RandomAccessFile(tempFile, "r");
-        int recordLength = (int) randomAccessFile.readLong();
-        byte [] b = new byte[recordLength];
-        randomAccessFile.read(b, 0, recordLength);
+        FeatureVector fv2 = FeatureVector.deserializeDenseFrom(randomAccessFile);
         randomAccessFile.close();
-
-        assertEquals(recordLength + 8, tempFile.length());
-
-        FeatureVector fv2 = FeatureVector.deserializeDense(b);
 
         assertEquals(fv.getY(), fv2.getY());
         DenseVectorN dv2 = (DenseVectorN)fv2.getX();
@@ -127,30 +116,14 @@ public class FeatureVectorTest
 
         FeatureVector fv = new FeatureVector(1, sv);
 
-        UnsafeMemory memory = fv.sparseSerialize(null);
-
-
         File tempFile = File.createTempFile("sparse", "ser");
         tempFile.deleteOnExit();
 
         RandomAccessFile randomAccessFile = new RandomAccessFile(tempFile, "rw");
-        // Write bytes out
-        long inBuffer = memory.getPos();
-        randomAccessFile.writeLong(inBuffer);
-        randomAccessFile.write(memory.getBuffer(), 0, (int) inBuffer);
+        fv.serializeTo(randomAccessFile, null);
         randomAccessFile.close();
-
-        assertEquals(inBuffer + 8, tempFile.length());
-
-
         randomAccessFile = new RandomAccessFile(tempFile, "r");
-        int recordLength = (int) randomAccessFile.readLong();
-        byte [] b = new byte[recordLength];
-        randomAccessFile.read(b, 0, recordLength);
-        randomAccessFile.close();
-
-
-        FeatureVector fv2 = FeatureVector.deserializeSparse(b);
+        FeatureVector fv2 = FeatureVector.deserializeSparseFrom(randomAccessFile);
 
         assertEquals(fv.getY(), fv2.getY());
 

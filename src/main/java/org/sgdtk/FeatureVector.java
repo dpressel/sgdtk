@@ -1,14 +1,8 @@
-/*
- * Copyright (c) 2015 3CSI
- * All Rights Reserved
- *
- * THIS IS UNPUBLISHED PROPRIETARY SOURCE CODE OF 3CSI
- * The copyright notice above does not evidence any
- * actual or intended publication of such source code.
- */
-
 package org.sgdtk;
 
+
+import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.util.List;
 
 public class FeatureVector
@@ -89,6 +83,10 @@ public class FeatureVector
     }
 
 
+    /**
+     * Get the number of bytes required to serialize this vector including label
+     * @return
+     */
     public int getSerializationSize()
     {
         if (x.getType() == VectorN.Type.SPARSE)
@@ -98,6 +96,14 @@ public class FeatureVector
         return getDenseSerializationSize();
     }
 
+    /**
+     * Write out the FeatureVector to UnsafeMemory, backed by the provided memory buffer.
+     * This allows efficient serialization for cases where the max buffer size is known a priori.  Note
+     * that this can be determined using getSerializationSize().
+     * The contents will be in UnsafeMemory.getBuffer() with length UnsafeMemory.getPos()
+     * @param buffer
+     * @return
+     */
     public UnsafeMemory serialize(byte[] buffer)
     {
         if (x.getType() == VectorN.Type.SPARSE)
@@ -107,6 +113,81 @@ public class FeatureVector
         return denseSerialize(buffer);
     }
 
+    /**
+     * Write out the FeatureVector to UnsafeMemory.  This will place it in UnsafeMemory.getBuffer() with
+     * length of UnsafeMemory.getPos()
+     * @return
+     */
+    public UnsafeMemory serialize()
+    {
+        return serialize(null);
+    }
+
+    /**
+     * Write out the FeatureVector to a file at the current offset, using the working buffer.  The buffer
+     * should be pre-sized using getSerializationSize(), or it can be null, in which case it will be allocated
+     *
+     * @param output A file open at the desired write offset
+     * @param buffer A working buffer of at least the required number of bytes or null
+     * @throws IOException
+     */
+    public void serializeTo(RandomAccessFile output, byte[] buffer) throws IOException
+    {
+        UnsafeMemory memory = serialize(buffer);
+        // Write bytes out
+        long sz = memory.getPos();
+        output.writeLong(sz);
+        output.write(memory.getBuffer(), 0, (int) sz);
+    }
+
+
+    /**
+     * Write out the FeatureVector to a file at the current offset.  The working buffer for this vector will be
+     * internally (temporarily) allocated
+     *
+     * @param output A file open at the desired write offset
+     * @throws IOException
+     */
+    public void serializeTo(RandomAccessFile output) throws IOException
+    {
+        serializeTo(output, null);
+    }
+
+    /**
+     * Read a sparse vector in from a file.  Working memory will be allocated underneath.  Note that, for this reason,
+     * OverlappedTrainingRunner does not use this memory, but instead uses a pre-allocated work buffer, which is resized
+     * as necessary
+     *
+     * @param input A file
+     * @return
+     * @throws IOException
+     */
+    public static FeatureVector deserializeSparseFrom(RandomAccessFile input) throws IOException
+    {
+        int sz = (int)input.readLong();
+        byte[] b = new byte[sz];
+        input.read(b, 0, sz);
+        FeatureVector fv = deserializeSparse(b);
+        return fv;
+    }
+
+    /**
+     * Read a dense vector in from a file.  Working memory will be allocated underneath.  Note that, for this reason,
+     * OverlappedTrainingRunner does not use this memory, but instead uses a pre-allocated work buffer, which is resized
+     * as necessary
+     *
+     * @param input A file
+     * @return
+     * @throws IOException
+     */
+    public static FeatureVector deserializeDenseFrom(RandomAccessFile input) throws IOException
+    {
+        int sz = (int)input.readLong();
+        byte[] b = new byte[sz];
+        input.read(b, 0, sz);
+        FeatureVector fv = deserializeDense(b);
+        return fv;
+    }
 
     public static FeatureVector deserializeSparse(byte[] buffer)
     {

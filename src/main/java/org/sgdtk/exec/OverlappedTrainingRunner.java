@@ -168,15 +168,10 @@ public class OverlappedTrainingRunner implements AsyncTrainingRunner
         if (getEpochs() > 1)
         {
             // Figure out how many bytes we need to make this work
-            int numBytes =fv.getSerializationSize();
+            int numBytes = fv.getSerializationSize();
             packBuffer = growIfNeeded(packBuffer, numBytes);
             // Serialize
-            UnsafeMemory memory = fv.serialize(packBuffer);
-
-            // Write bytes out
-            long inBuffer = memory.getPos();
-            randomAccessFile.writeLong(inBuffer);
-            randomAccessFile.write(memory.getBuffer(), 0, (int) inBuffer);
+            fv.serializeTo(randomAccessFile, packBuffer);
         }
     }
 
