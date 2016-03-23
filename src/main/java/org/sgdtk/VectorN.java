@@ -41,4 +41,5 @@ public interface VectorN
     enum Type { SPARSE, DENSE }
 
     Type getType();
+
 }

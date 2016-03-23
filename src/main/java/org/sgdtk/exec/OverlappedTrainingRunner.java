@@ -50,7 +50,7 @@ public class OverlappedTrainingRunner implements AsyncTrainingRunner
     private File cacheFile;
     RandomAccessFile randomAccessFile;
     byte[] packBuffer;
-    private boolean dense = false;
+    private Boolean dense = null;
     private List<TrainingEventListener> listeners = new ArrayList<>();
     private double probAdd = 1.0;
     private Learner learner;
@@ -113,14 +113,11 @@ public class OverlappedTrainingRunner implements AsyncTrainingRunner
 
     private FeatureVector toFeatureVector()
     {
-        FeatureVector fv = ExecUtils.readFeatureVectorFromBuffer(packBuffer);
-        if (isDense())
+        if (dense)
         {
-            DenseVectorN dense = new DenseVectorN(fv.getX());
-            fv = new FeatureVector(fv.getY(), dense);
-
+            return FeatureVector.deserializeDense(packBuffer);
         }
-        return fv;
+        return FeatureVector.deserializeSparse(packBuffer);
     }
 
     private static final int PACK_BUFFER_SZ = 262144;
@@ -129,7 +126,6 @@ public class OverlappedTrainingRunner implements AsyncTrainingRunner
         if (getEpochs() > 1)
         {
             packBuffer = new byte[PACK_BUFFER_SZ];
-            //cacheFile = File.createTempFile("sgd", ".cache", cacheDir);
             randomAccessFile = new RandomAccessFile(getCacheFile(), "rw");
         }
     }
@@ -140,16 +136,10 @@ public class OverlappedTrainingRunner implements AsyncTrainingRunner
         try
         {
             FeatureVector featureVector = fv;
-            
-            // Not really sure this is a good way to do this, but then again
-            // I dont have a lot of good dense use-cases right now.
-            if (isDense())
+
+            if (dense == null)
             {
-                if (fv.getX() instanceof SparseVectorN)
-                {
-                    DenseVectorN dense = new DenseVectorN(fv.getX());
-                    featureVector = new FeatureVector(fv.getY(), dense);
-                }
+                dense = fv.getX().getType() == VectorN.Type.DENSE;
             }
             // We can save this as-is even if sparse
             saveCachedFeatureVector(fv);
@@ -178,10 +168,10 @@ public class OverlappedTrainingRunner implements AsyncTrainingRunner
         if (getEpochs() > 1)
         {
             // Figure out how many bytes we need to make this work
-            int numBytes = ExecUtils.getByteSizeForFeatureVector(fv.getNonZeroOffsets().size());
+            int numBytes =fv.getSerializationSize();
             packBuffer = growIfNeeded(packBuffer, numBytes);
             // Serialize
-            UnsafeMemory memory = ExecUtils.writeFeatureVectorToBuffer(fv, packBuffer);
+            UnsafeMemory memory = fv.serialize(packBuffer);
 
             // Write bytes out
             long inBuffer = memory.getPos();

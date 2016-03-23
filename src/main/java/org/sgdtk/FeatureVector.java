@@ -87,4 +87,120 @@ public class FeatureVector
         this.y = source.getY();
         this.x.from(source.getX());
     }
+
+
+    public int getSerializationSize()
+    {
+        if (x.getType() == VectorN.Type.SPARSE)
+        {
+            return getSparseSerializationSize();
+        }
+        return getDenseSerializationSize();
+    }
+
+    public UnsafeMemory serialize(byte[] buffer)
+    {
+        if (x.getType() == VectorN.Type.SPARSE)
+        {
+            return sparseSerialize(buffer);
+        }
+        return denseSerialize(buffer);
+    }
+
+
+    public static FeatureVector deserializeSparse(byte[] buffer)
+    {
+        UnsafeMemory memory = new UnsafeMemory(buffer);
+        double y = memory.getDouble();
+        FeatureVector fv = FeatureVector.newSparse(y);
+        int sparseSz = memory.getInt();
+
+        for (int i = 0; i < sparseSz; ++i)
+        {
+            fv.add(new Offset(memory.getInt(), memory.getDouble()));
+        }
+        fv.getX().organize();
+        return fv;
+    }
+
+    public static FeatureVector deserializeDense(byte[] buffer)
+    {
+        UnsafeMemory memory = new UnsafeMemory(buffer);
+        double y = memory.getDouble();
+        int denseSz = memory.getInt();
+
+        DenseVectorN dv = new DenseVectorN(denseSz);
+
+        for (int i = 0; i < denseSz; ++i)
+        {
+            dv.set(i, memory.getDouble());
+        }
+        return new FeatureVector(y, dv);
+    }
+
+    public int getSparseSerializationSize()
+    {
+        int numNonSparseElements = getNonZeroOffsets().size();
+        int part = UnsafeMemory.SIZE_OF_DOUBLE + UnsafeMemory.SIZE_OF_INT;
+        int total = part + numNonSparseElements * part;
+        return total;
+    }
+
+    public UnsafeMemory sparseSerialize(byte[] buffer)
+    {
+        int total = getSerializationSize();
+        if (buffer == null)
+        {
+            buffer = new byte[total];
+        }
+        List<Offset> offsets = getNonZeroOffsets();
+
+        assert( total <= buffer.length );
+        UnsafeMemory memory = new UnsafeMemory(buffer);
+        memory.putDouble(getY());
+
+        int sz = offsets.size();
+        memory.putInt(sz);
+        for (int i = 0; i < sz; ++i)
+        {
+            Offset offset = offsets.get(i);
+            memory.putInt(offset.index);
+            memory.putDouble(offset.value);
+        }
+        return memory;
+    }
+
+    protected int getDenseSerializationSize()
+    {
+        DenseVectorN dv = (DenseVectorN)x;
+        int numElements = dv.getX().size();
+        int head = UnsafeMemory.SIZE_OF_DOUBLE + UnsafeMemory.SIZE_OF_INT;
+        int total = head + numElements * UnsafeMemory.SIZE_OF_DOUBLE;
+        return total;
+    }
+
+    protected UnsafeMemory denseSerialize(byte[] buffer)
+    {
+        int total = getSerializationSize();
+        if (buffer == null)
+        {
+            buffer = new byte[total];
+        }
+
+        assert( total <= buffer.length );
+        UnsafeMemory memory = new UnsafeMemory(buffer);
+
+        DenseVectorN dv = (DenseVectorN)x;
+        ArrayDouble xa = dv.getX();
+        memory.putDouble(y);
+
+        int sz = xa.size();
+        memory.putInt(sz);
+        for (int i = 0; i < sz; ++i)
+        {
+            double v = xa.get(i);
+            memory.putDouble(v);
+        }
+        return memory;
+    }
 }

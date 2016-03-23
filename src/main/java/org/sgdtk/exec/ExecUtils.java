@@ -37,68 +37,6 @@ public final class ExecUtils
         n++;
         return n;
     }
-    public static FeatureVector readFeatureVector(String fileName, byte[] buffer) throws IOException
-    {
-
-        RandomAccessFile raf = null;
-        try
-        {
-            raf = new RandomAccessFile(fileName, "r");
-            raf.read(buffer);
-            raf.close();
-            return readFeatureVectorFromBuffer(buffer);
-        }
-        catch (IOException e)
-        {
-            if (raf != null)
-            {
-                raf.close();
-            }
-            throw e;
-        }
-    }
-
-    public static FeatureVector readFeatureVectorFromBuffer(byte[] buffer)
-    {
-        UnsafeMemory memory = new UnsafeMemory(buffer);
-        double y = memory.getDouble();
-        FeatureVector fv = FeatureVector.newSparse(y);
-        int sparseSz = memory.getInt();
-
-        for (int i = 0; i < sparseSz; ++i)
-        {
-            fv.add(new Offset(memory.getInt(), memory.getDouble()));
-        }
-        fv.getX().organize();
-        return fv;
-    }
-
-    public static int getByteSizeForFeatureVector(int maxNonZeroOffset)
-    {
-        int part = UnsafeMemory.SIZE_OF_DOUBLE + UnsafeMemory.SIZE_OF_INT;
-        int total = part + maxNonZeroOffset * part;
-        return total;
-    }
-
-    public static UnsafeMemory writeFeatureVectorToBuffer(FeatureVector fv, byte[] buffer)
-    {
-        List<Offset> offsets = fv.getNonZeroOffsets();
-
-        int total = getByteSizeForFeatureVector(offsets.size());
-        assert( total < buffer.length );
-        UnsafeMemory memory = new UnsafeMemory(buffer);
-        memory.putDouble(fv.getY());
-
-        int sz = offsets.size();
-        memory.putInt(sz);
-        for (int i = 0; i < sz; ++i)
-        {
-            Offset offset = offsets.get(i);
-            memory.putInt(offset.index);
-            memory.putDouble(offset.value);
-        }
-        return memory;
-    }
 
     /**
      * Load up a list of feature vectors from the file provided.

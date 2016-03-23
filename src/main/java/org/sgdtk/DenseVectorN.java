@@ -101,7 +101,7 @@ public class DenseVectorN implements VectorN
     public double dot(VectorN vec)
     {
         double acc = 0.;
-        if (vec instanceof SparseVectorN)
+        if (vec.getType() == Type.SPARSE)
         {
             for (Offset offset : vec.getNonZeroOffsets())
             {

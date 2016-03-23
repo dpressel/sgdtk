@@ -154,18 +154,18 @@ public class TrainOverlapped
             // Now start a thread for File IO, and then pull data until we hit the number of epochs
             // File cacheFile = new File(params.train + ".cache");
 
-            OverlappedTrainingRunner trainingLifecycle = new OverlappedTrainingRunner(learner);
-            trainingLifecycle.setEpochs(params.epochs);
-            trainingLifecycle.setBufferSz(params.bufferSize);
-            trainingLifecycle.setLearnerUserData(dims.width);
-            // trainingLifecycle.setCacheFile(cacheFile);
+            OverlappedTrainingRunner asyncTrainer = new OverlappedTrainingRunner(learner);
+            asyncTrainer.setEpochs(params.epochs);
+            asyncTrainer.setBufferSz(params.bufferSize);
+            asyncTrainer.setLearnerUserData(dims.width);
+            // asyncTrainer.setCacheFile(cacheFile);
 
             SVMLightFileFeatureProvider evalReader = new SVMLightFileFeatureProvider();
 
             List<FeatureVector> evalSet = evalReader.load(new File(params.eval));
 
 
-            trainingLifecycle.addListener(new TrainingEventListener()
+            asyncTrainer.addListener(new TrainingEventListener()
             {
 
 
@@ -181,9 +181,7 @@ public class TrainOverlapped
                 }
             });
 
-            trainingLifecycle.start();
-            //Learner learner = new SGDLearner(lossFunction, params.lambda, params.eta0);
-
+            asyncTrainer.start();
             SVMLightFileFeatureProvider fileReader = new SVMLightFileFeatureProvider();
 
 
@@ -194,10 +192,10 @@ public class TrainOverlapped
             //buffer = new byte[262144];
             while ((fv = fileReader.next()) != null)
             {
-                trainingLifecycle.add(fv);
+                asyncTrainer.add(fv);
             }
 
-            Model model = trainingLifecycle.finish();
+            Model model = asyncTrainer.finish();
             if (model instanceof LinearModel)
             {
                 double wnorm = ((LinearModel)model).mag();

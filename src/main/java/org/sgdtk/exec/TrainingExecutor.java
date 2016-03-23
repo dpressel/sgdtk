@@ -18,8 +18,7 @@ import java.util.List;
 public interface TrainingExecutor
 {
     /**
-     * Initialize the executor.  This has to be done upfront, before a {@link org.sgdtk.exec.FeatureVectorProducer} is
-     * created
+     * Initialize the executor.
      *
      * @param learner The learner
      * @param model The initialized but untrained model
@@ -54,15 +53,8 @@ public interface TrainingExecutor
     File getCacheFile();
 
     /**
-     * Add a feature vector to the executor.  You only need to do this yourself if you arent using a
-     * {@link org.sgdtk.exec.FeatureVectorProducer}, which will do this for you.  If you decide to use this
-     * method directly, you should add the same vector once per epoch so the executor sees it each time.
-     * When you are done loading an epoch, you should pass 'null' to this call to signal the end of an epoch
-     * for the executor.  This function should block if there are no available slots for its underlying buffer.
+     * Add a feature vector to the executor. This function should block if there are no available slots for its underlying buffer.
      * This will create proper back-pressure and slow down the streaming.
-     *
-     * @see {@link FeatureVectorProducer#run()}
-     *
      * @param featureVector feature vector
      */
     void add(FeatureVector featureVector);
