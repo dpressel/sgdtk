@@ -134,7 +134,7 @@ public class FixedWidthDatasetReader implements DatasetReader
 
         while (tokenizer.hasMoreTokens())
         {
-            String word = tokenizer.nextToken().toLowerCase();
+            String word = tokenizer.nextToken().toLowerCase().replaceAll("\"", "").replaceAll("'", "").replaceAll("`", "");
             int idx = hashFeatureEncoder.indexOf(word);
             x.add(new Offset(idx, 1.0));
         }

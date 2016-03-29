@@ -66,6 +66,8 @@ public class Train
     int epoch = 1;
     Learner learner;
     Model model;
+    double trainingBest = 100.;
+    double testBest = 100.;
 
     enum LossType
     {
@@ -165,12 +167,20 @@ public class Train
         System.out.println("Epoch training time " + elapsedThisEpoch + "s");
 
         learner.eval(model, trainingSet, metrics);
+        if (metrics.getError() < trainingBest)
+        {
+            trainingBest = metrics.getError();
+        }
         showMetrics(metrics, "Training Set Eval Metrics");
         metrics.clear();
 
         if (evalSet != null)
         {
             learner.eval(model, evalSet, metrics);
+            if (metrics.getError() < testBest)
+            {
+                testBest = metrics.getError();
+            }
             showMetrics(metrics, "Test Set Eval Metrics");
         }
         ++epoch;
@@ -232,6 +242,12 @@ public class Train
 
             System.out.println("Total training time " + totalTrainingElapsed + "s");
 
+            System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+            System.out.println(String.format("Highest training acc: %.02f %%", 100 * (1 - trainer.trainingBest)));
+            if (params.eval != null)
+            {
+                System.out.println(String.format("Highest test acc: %.02f %%", 100 * (1 - trainer.testBest)));
+            }
             trainer.saveIf(params.model);
 
         }
