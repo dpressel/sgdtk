@@ -6,47 +6,40 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.ArrayList;
-
-import java.util.List;
-import java.util.StringTokenizer;
+import java.util.*;
 
 /**
- * Produce a sum of BoW features
- * <p>
- * This is going to add the component wise features which will basically be a pre-projection layer and will cause a small
- * number of inputs.
+ * Produce a (currently sparse) training example from a TSV file
  *
  * @author dpressel
  */
-public class SumWordVecDatasetReader implements DatasetReader
+public class FixedWidthDatasetReader implements DatasetReader
 {
 
-    Word2VecModel word2vecModel;
-    private long embeddingSize;
-    private int lineNumber = 0;
-
-
-    HashFeatureEncoder hashFeatureEncoder = new HashFeatureEncoder(24);
+    HashFeatureEncoder hashFeatureEncoder;
 
     FeatureNameEncoder labelEncoder;
 
     @Override
     public int getLargestVectorSeen()
     {
-        return (int) embeddingSize;
+        return hashFeatureEncoder.length();
     }
 
 
-    public SumWordVecDatasetReader(String embeddings) throws IOException
+    public FixedWidthDatasetReader() throws IOException
     {
-        this(embeddings, null);
+        this(null);
     }
-    public SumWordVecDatasetReader(String embeddings, FeatureNameEncoder labelEncoder) throws IOException
+    public FixedWidthDatasetReader(FeatureNameEncoder labelEncoder) throws IOException
     {
-        word2vecModel = Word2VecModel.loadWord2VecModel(embeddings);
-        this.embeddingSize = word2vecModel.getSize();
+        this(labelEncoder, 24);
+    }
+    public FixedWidthDatasetReader(FeatureNameEncoder labelEncoder, int nbits) throws IOException
+    {
+
         this.labelEncoder = labelEncoder == null ? new LazyFeatureDictionaryEncoder(): labelEncoder;
+        this.hashFeatureEncoder = new HashFeatureEncoder(nbits);
     }
 
     BufferedReader reader;
@@ -60,7 +53,6 @@ public class SumWordVecDatasetReader implements DatasetReader
     @Override
     public final void open(File... file) throws IOException
     {
-        lineNumber = 0;
         reader = new BufferedReader(new FileReader(file[0]));
     }
 
@@ -118,8 +110,6 @@ public class SumWordVecDatasetReader implements DatasetReader
             return null;
         }
 
-        lineNumber++;
-
         final StringTokenizer tokenizer = new StringTokenizer(line, " \t");
 
         String strLabel = tokenizer.nextToken();
@@ -140,29 +130,13 @@ public class SumWordVecDatasetReader implements DatasetReader
         }
 
         // Parse a sentence and place results in a continuous Bag of Words
-        DenseVectorN x = new DenseVectorN((int)embeddingSize);
-        ArrayDouble xArray = x.getX();
+        SparseVectorN x = new SparseVectorN();
+
         while (tokenizer.hasMoreTokens())
         {
             String word = tokenizer.nextToken().toLowerCase();
-
-            float[] wordVector = word2vecModel.getVec(word);
-            for (int j = 0, sz = xArray.size(); j < sz; ++j)
-            {
-                float fj = wordVector[j];
-                boolean hadNaN = false;
-                if (Float.isNaN(fj))
-                {
-                    hadNaN = true;
-                    fj = 0;
-                    //throw new IOException("Unexpected NaN");
-                }
-                if (hadNaN)
-                {
-                    System.err.println("NaN word: " + word);
-                }
-                xArray.addi(j, fj);
-            }
+            int idx = hashFeatureEncoder.indexOf(word);
+            x.add(new Offset(idx, 1.0));
         }
 
         final FeatureVector fv = new FeatureVector(label, x);
@@ -170,13 +144,4 @@ public class SumWordVecDatasetReader implements DatasetReader
         return fv;
     }
 
-    public int getEmbeddingSize()
-    {
-        return (int)embeddingSize;
-    }
-
-    public void setEmbeddingSize(int embeddingSize)
-    {
-        this.embeddingSize = embeddingSize;
-    }
 }

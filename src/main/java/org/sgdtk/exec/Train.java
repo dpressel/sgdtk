@@ -6,6 +6,7 @@ import com.beust.jcommander.Parameter;
 import org.sgdtk.*;
 import org.sgdtk.SGDLearner;
 import org.sgdtk.io.Config;
+import org.sgdtk.io.FixedWidthDatasetReader;
 import org.sgdtk.io.JsonConfigReader;
 import org.sgdtk.io.SVMLightFileFeatureProvider;
 import org.sgdtk.SquaredHingeLoss;
@@ -29,14 +30,14 @@ public class Train
         @Parameter(description = "Training file", names = {"--train", "-t"}, required = true)
         public String train;
 
-    	@Parameter(description = "Testing file", names = {"--eval", "-e"})
+        @Parameter(description = "Testing file", names = {"--eval", "-e"})
         public String eval;
 
         @Parameter(description = "Model to write out", names = {"--model", "-s"})
         public String model;
 
         @Parameter(description = "Loss function", names = {"--loss", "-l"})
-        public String loss = "hinge";
+        public String loss = LossType.HINGE.toString();
 
         @Parameter(description = "lambda", names = {"--lambda", "-lambda"})
         public Double lambda = 1e-5;
@@ -51,14 +52,147 @@ public class Train
         public Integer numClasses = 2;
 
         @Parameter(description = "Learning method (sgd|adagrad)", names = {"--method"})
-        public String method = "sgd";
+        public String method = LearningMethod.SGD.toString();
 
         @Parameter(description = "Config file", names = {"--config", "--conf"})
         public String configFile;
 
-	}
+        @Parameter(description = "File type", names = {"--ftype"})
+        public String fileType = FileType.SVM.toString();
 
-	public static void main(String[] args)
+    }
+
+    int featureVectorWidth = 0;
+    int epoch = 1;
+    Learner learner;
+    Model model;
+
+    enum LossType
+    {
+        LOG, LR, SQH, SQ, HINGE
+    }
+
+    enum LearningMethod
+    {
+        SGD, ADAGRAD
+    }
+    public static Loss lossFor(String loss)
+    {
+        LossType lossType = LossType.valueOf(loss.toUpperCase());
+        System.out.println("Using " + lossType.toString() + " loss");
+        if (lossType == LossType.LOG || lossType == LossType.LR)
+        {
+            return new LogLoss();
+        }
+        if (lossType == LossType.SQH)
+        {
+            return new SquaredHingeLoss();
+        }
+        else if (lossType == LossType.SQ)
+        {
+            return new SquaredLoss();
+        }
+        return new HingeLoss();
+    }
+
+    enum FileType { SVM, TSV, TXT }
+
+    public List<FeatureVector> load(String file, String ftype) throws IOException
+    {
+        if (file == null)
+        {
+            return null;
+        }
+        FileType fileType = FileType.valueOf(ftype.toUpperCase());
+        FeatureProvider reader;
+
+        long l0 = System.currentTimeMillis();
+        List<FeatureVector> dataset;
+
+        if (fileType == FileType.TSV || fileType == FileType.TXT)
+        {
+            System.out.println("Loading 2-class TSV (-1, 1)\tContent");
+            FixedWidthDatasetReader fixedWidthDatasetReader = new FixedWidthDatasetReader();
+            reader = fixedWidthDatasetReader;
+            dataset = fixedWidthDatasetReader.load(new File(file));
+        }
+        else
+        {
+            System.out.println("Loading SVM light file");
+            SVMLightFileFeatureProvider svmLight = new SVMLightFileFeatureProvider();
+            reader = svmLight;
+            dataset = svmLight.load(new File(file));
+        }
+        int largest = reader.getLargestVectorSeen();
+        if (largest > featureVectorWidth)
+        {
+            featureVectorWidth = largest;
+        }
+        double elapsed = (System.currentTimeMillis() - l0) / 1000.;
+        System.out.println(file + " loaded in " + elapsed + "s");
+
+
+        return dataset;
+    }
+
+    void initFromConfig(String configFile) throws Exception
+    {
+        LearnerCreator creator = new SGDLearnerCreator();
+        JsonConfigReader configReader = new JsonConfigReader();
+        Config config = configReader.read(new File(configFile));
+        learner = creator.newInstance(config);
+        System.out.println("Creating model with vector of size " + featureVectorWidth);
+        model = learner.create(featureVectorWidth);
+    }
+
+    void init(Learner learner) throws Exception
+    {
+        this.learner = learner;
+        System.out.println("Creating model with vector of size " + featureVectorWidth);
+        model = learner.create(featureVectorWidth);
+    }
+
+    double runEpoch(List<FeatureVector> trainingSet, List<FeatureVector> evalSet)
+    {
+        Collections.shuffle(trainingSet);
+        System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+        System.out.println("EPOCH: " + epoch);
+        Metrics metrics = new Metrics();
+        double t0 = System.currentTimeMillis();
+
+        learner.trainEpoch(model, trainingSet);
+        double elapsedThisEpoch = (System.currentTimeMillis() - t0) / 1000.;
+        System.out.println("Epoch training time " + elapsedThisEpoch + "s");
+
+        learner.eval(model, trainingSet, metrics);
+        showMetrics(metrics, "Training Set Eval Metrics");
+        metrics.clear();
+
+        if (evalSet != null)
+        {
+            learner.eval(model, evalSet, metrics);
+            showMetrics(metrics, "Test Set Eval Metrics");
+        }
+        ++epoch;
+        return elapsedThisEpoch;
+    }
+
+    public void saveIf(String modelName) throws IOException
+    {
+        if (modelName != null)
+        {
+            System.out.println("Saving: " + modelName);
+            model.save(new FileOutputStream(modelName));
+        }
+    }
+
+    public static Class learningMethodFor(String method)
+    {
+        LearningMethod learningMethod = LearningMethod.valueOf(method.toUpperCase());
+        System.out.println("Using " + learningMethod.toString() + " learning method");
+        return learningMethod == LearningMethod.ADAGRAD ? AdagradLinearModel.class : LinearModel.class;
+    }
+    public static void main(String[] args)
     {
         try
         {
@@ -66,109 +200,47 @@ public class Train
             JCommander jc = new JCommander(params, args);
             jc.parse();
 
-            File trainFile = new File(params.train);
+            Train trainer = new Train();
 
-            SVMLightFileFeatureProvider reader = new SVMLightFileFeatureProvider();
-
-            long l0 = System.currentTimeMillis();
-            List<FeatureVector> trainingSet = reader.load(trainFile);
-            double elapsed = (System.currentTimeMillis() - l0)/1000.;
-            System.out.println("Training data loaded in " + elapsed + "s");
-            List<FeatureVector> evalSet = null;
-            if (params.eval != null)
-            {
-                File evalFile = new File(params.eval);
-                evalSet = reader.load(evalFile);
-            }
-
-            Learner learner = null;
+            List<FeatureVector> trainingSet = trainer.load(params.train, params.fileType);
+            List<FeatureVector> evalSet = trainer.load(params.eval, params.fileType);
 
             // Read all params from a config stream (easy, way)
             if (params.configFile != null)
             {
-                LearnerCreator creator = new SGDLearnerCreator();
-                JsonConfigReader configReader = new JsonConfigReader();
-                Config config = configReader.read(new File(params.configFile));
-                learner = creator.newInstance(config);
-
+                trainer.initFromConfig(params.configFile);
             }
             // Build up model from command line
             else
             {
-                Loss lossFunction = null;
-                if (params.loss.equalsIgnoreCase("log"))
-                {
-                    System.out.println("Using log loss");
-                    lossFunction = new LogLoss();
-                }
-                else if (params.loss.startsWith("sqh"))
-                {
-                    System.out.println("Using squared hinge loss");
-                    lossFunction = new SquaredHingeLoss();
-                }
-                else if (params.loss.startsWith("sq"))
-                {
-                    System.out.println("Using square loss");
-                    lossFunction = new SquaredLoss();
-                }
-                else
-                {
-                    System.out.println("Using hinge loss");
-                    lossFunction = new HingeLoss();
-                }
-
+                Loss lossFunction = lossFor(params.loss);
                 boolean isAdagrad = "adagrad".equals(params.method);
-
-                ModelFactory modelFactory = new LinearModelFactory(isAdagrad ? AdagradLinearModel.class : LinearModel.class);
-
-
-                learner = params.numClasses > 2 ? new MultiClassSGDLearner(params.numClasses, lossFunction, params.lambda, params.eta0) :
+                ModelFactory modelFactory = new LinearModelFactory(learningMethodFor(params.method));
+                trainer.init(params.numClasses > 2 ? new MultiClassSGDLearner(params.numClasses, lossFunction, params.lambda, params.eta0) :
                         new SGDLearner(lossFunction, params.lambda, params.eta0,
                                 modelFactory,
-                                isAdagrad ? new FixedLearningRateSchedule() : new RobbinsMonroUpdateSchedule());
+                                isAdagrad ? new FixedLearningRateSchedule() : new RobbinsMonroUpdateSchedule()));
             }
 
-            int vSz = reader.getLargestVectorSeen();
-            System.out.println("Creating model with vector of size " + vSz);
-            Model model = learner.create(vSz);
+
             double totalTrainingElapsed = 0.;
             for (int i = 0; i < params.epochs; ++i)
             {
-                Collections.shuffle(trainingSet);
-                System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
-                System.out.println("EPOCH: " + (i + 1));
-                Metrics metrics = new Metrics();
-                double t0 = System.currentTimeMillis();
 
-                learner.trainEpoch(model, trainingSet);
-                double elapsedThisEpoch = (System.currentTimeMillis() - t0) /1000.;
-                System.out.println("Epoch training time " + elapsedThisEpoch + "s");
-                totalTrainingElapsed += elapsedThisEpoch;
-
-                learner.eval(model, trainingSet, metrics);
-                showMetrics(metrics, "Training Set Eval Metrics");
-                metrics.clear();
-
-                if (evalSet != null)
-                {
-                    learner.eval(model, evalSet, metrics);
-                    showMetrics(metrics, "Test Set Eval Metrics");
-                }
+                totalTrainingElapsed += trainer.runEpoch(trainingSet, evalSet);
             }
 
             System.out.println("Total training time " + totalTrainingElapsed + "s");
-            if (params.model != null)
-            {
-                model.save(new FileOutputStream(params.model));
 
-            }
-		}
-		catch (Exception ex)
-		{
-			ex.printStackTrace();
-			System.exit(1);
-		}
-	}
+            trainer.saveIf(params.model);
+
+        }
+        catch (Exception ex)
+        {
+            ex.printStackTrace();
+            System.exit(1);
+        }
+    }
 
     private static void showMetrics(Metrics metrics, String pre)
     {
@@ -178,7 +250,7 @@ public class Train
 
         System.out.println("\tLoss = " + metrics.getLoss());
         System.out.println("\tCost = " + metrics.getCost());
-        System.out.println("\tError = " + 100*metrics.getError());
+        System.out.println("\tError = " + 100 * metrics.getError());
         System.out.println("--------------------------------------------------------");
     }
 
