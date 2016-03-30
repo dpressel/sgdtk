@@ -60,6 +60,8 @@ public class Train
         @Parameter(description = "File type", names = {"--ftype"})
         public String fileType = FileType.SVM.toString();
 
+        @Parameter(description = "Shingled N-Grams", names = {"--ngrams"})
+        public Integer ngrams = 1;
     }
 
     int featureVectorWidth = 0;
@@ -99,7 +101,7 @@ public class Train
 
     enum FileType { SVM, TSV, TXT }
 
-    public List<FeatureVector> load(String file, String ftype) throws IOException
+    public List<FeatureVector> load(String file, String ftype, int ngrams) throws IOException
     {
         if (file == null)
         {
@@ -114,7 +116,7 @@ public class Train
         if (fileType == FileType.TSV || fileType == FileType.TXT)
         {
             System.out.println("Loading 2-class TSV (-1, 1)\tContent");
-            FixedWidthDatasetReader fixedWidthDatasetReader = new FixedWidthDatasetReader();
+            FixedWidthDatasetReader fixedWidthDatasetReader = new FixedWidthDatasetReader(ngrams);
             reader = fixedWidthDatasetReader;
             dataset = fixedWidthDatasetReader.load(new File(file));
         }
@@ -212,8 +214,8 @@ public class Train
 
             Train trainer = new Train();
 
-            List<FeatureVector> trainingSet = trainer.load(params.train, params.fileType);
-            List<FeatureVector> evalSet = trainer.load(params.eval, params.fileType);
+            List<FeatureVector> trainingSet = trainer.load(params.train, params.fileType, params.ngrams);
+            List<FeatureVector> evalSet = trainer.load(params.eval, params.fileType, params.ngrams);
 
             // Read all params from a config stream (easy, way)
             if (params.configFile != null)
@@ -224,12 +226,12 @@ public class Train
             else
             {
                 Loss lossFunction = lossFor(params.loss);
-                boolean isAdagrad = "adagrad".equals(params.method);
-                ModelFactory modelFactory = new LinearModelFactory(learningMethodFor(params.method));
+                Class classType = learningMethodFor(params.method);
+                ModelFactory modelFactory = new LinearModelFactory(classType);
                 trainer.init(params.numClasses > 2 ? new MultiClassSGDLearner(params.numClasses, lossFunction, params.lambda, params.eta0) :
                         new SGDLearner(lossFunction, params.lambda, params.eta0,
                                 modelFactory,
-                                isAdagrad ? new FixedLearningRateSchedule() : new RobbinsMonroUpdateSchedule()));
+                                classType.equals(AdagradLinearModel.class) ? new FixedLearningRateSchedule() : new RobbinsMonroUpdateSchedule()));
             }
 
 

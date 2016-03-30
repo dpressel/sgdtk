@@ -27,17 +27,17 @@ public class FixedWidthDatasetReader implements DatasetReader
     }
 
 
-    public FixedWidthDatasetReader() throws IOException
+    public FixedWidthDatasetReader(int ngrams) throws IOException
     {
-        this(null);
+        this(ngrams, null);
     }
-    public FixedWidthDatasetReader(FeatureNameEncoder labelEncoder) throws IOException
+    public FixedWidthDatasetReader(int ngrams, FeatureNameEncoder labelEncoder) throws IOException
     {
-        this(labelEncoder, 24);
+        this(ngrams, labelEncoder, 24);
     }
-    public FixedWidthDatasetReader(FeatureNameEncoder labelEncoder, int nbits) throws IOException
+    public FixedWidthDatasetReader(int ngrams, FeatureNameEncoder labelEncoder, int nbits) throws IOException
     {
-
+        this.ngrams = ngrams;
         this.labelEncoder = labelEncoder == null ? new LazyFeatureDictionaryEncoder(): labelEncoder;
         this.hashFeatureEncoder = new HashFeatureEncoder(nbits);
     }
@@ -129,19 +129,65 @@ public class FixedWidthDatasetReader implements DatasetReader
             label++;
         }
 
-        // Parse a sentence and place results in a continuous Bag of Words
-        SparseVectorN x = new SparseVectorN();
-
-        while (tokenizer.hasMoreTokens())
-        {
-            String word = tokenizer.nextToken().toLowerCase().replaceAll("\"", "").replaceAll("'", "").replaceAll("`", "");
-            int idx = hashFeatureEncoder.indexOf(word);
-            x.add(new Offset(idx, 1.0));
-        }
-
+        SparseVectorN x = extractWordGrams(tokenizer);
         final FeatureVector fv = new FeatureVector(label, x);
         fv.getX().organize();
         return fv;
+    }
+
+    // Look up the generative feature
+    private Offset toFeature(String... str)
+    {
+        String joined = CollectionsManip.join(str, "_*_"); // This fun delimiter borrowed from Mesnil's implementation
+        int idx = hashFeatureEncoder.indexOf(joined);
+        return new Offset(idx, 1.0);
+    }
+
+    private int ngrams;
+
+    private SparseVectorN extractWordGrams(StringTokenizer tokenizer)
+    {
+        SparseVectorN x = new SparseVectorN();
+
+        assert (ngrams > 0);
+
+        String t = null;
+        String l = null;
+        String ll = null;
+        String lll;
+
+        for (;tokenizer.hasMoreTokens();)
+        {
+
+            // Circular
+            lll = ll;
+            ll = l;
+            l = t;
+            t = tokenizer.nextToken().toLowerCase().replaceAll("\"", "").replaceAll("'", "").replaceAll("`", "").replaceAll(",", "");
+            if (t.isEmpty())
+            {
+                continue;
+            }
+            // unigram
+            x.add(toFeature(t));
+
+            // bigram?
+            if (ngrams > 1 && l != null)
+            {
+                // trigram?
+                x.add(toFeature(l, t));
+                if (ngrams > 2 && ll != null)
+                {
+                    x.add(toFeature(ll, l, t));
+                }
+                // 4-gram?
+                if (ngrams > 3 && lll != null)
+                {
+                    x.add(toFeature(lll, ll, l, t));
+                }
+            }
+        }
+        return x;
     }
 
 }
