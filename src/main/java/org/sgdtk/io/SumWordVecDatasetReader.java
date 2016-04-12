@@ -46,7 +46,7 @@ public class SumWordVecDatasetReader implements DatasetReader
     {
         word2vecModel = Word2VecModel.loadWord2VecModel(embeddings);
         this.embeddingSize = word2vecModel.getSize();
-        this.labelEncoder = labelEncoder == null ? new LazyFeatureDictionaryEncoder(): labelEncoder;
+        this.labelEncoder = labelEncoder;
     }
 
     BufferedReader reader;
@@ -122,13 +122,14 @@ public class SumWordVecDatasetReader implements DatasetReader
 
         final StringTokenizer tokenizer = new StringTokenizer(line, " \t");
 
+        // If there is no label encoder, then just absorb this value
         String strLabel = tokenizer.nextToken();
         Integer label;
-        try
+        if (labelEncoder == null)
         {
             label = Integer.valueOf(strLabel);
         }
-        catch (NumberFormatException numEx)
+        else // Use the label encoder
         {
             label = labelEncoder.indexOf(strLabel);
             if (label == null)
