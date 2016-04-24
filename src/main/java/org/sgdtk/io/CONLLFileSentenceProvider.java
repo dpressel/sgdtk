@@ -84,7 +84,7 @@ public class CONLLFileSentenceProvider implements SequenceProvider
             }
             else
             {
-                String [] tok = line.split(" ");
+                String [] tok = line.split("\\s+");
                 State state = new State(tok, tok.length - 1);
                 sequence.add(state);
             }
