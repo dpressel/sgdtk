@@ -210,4 +210,9 @@ public class LinearModel implements WeightModel
         return eta;
     }
 
+    @Override
+    public double[] featureImportance(FeatureVector fv) {
+        return null;
+    }
+
 }

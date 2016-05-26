@@ -60,6 +60,13 @@ public interface Model
     double[] score(FeatureVector fv);
 
     /**
+     * Report the feature importance for every feature of fv
+     * Importance of missing features is zero
+     * @param fv
+     * @return
+     */
+    double[] featureImportance(FeatureVector fv);
+    /**
      * Create a deep copy of this
      * @return clone
      */
