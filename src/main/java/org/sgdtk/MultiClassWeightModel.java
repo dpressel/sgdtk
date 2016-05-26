@@ -1,5 +1,7 @@
 package org.sgdtk;
 
+import static org.hamcrest.CoreMatchers.instanceOf;
+
 import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
@@ -140,5 +142,19 @@ public class MultiClassWeightModel implements Model
     public Model prototype()
     {
         return new MultiClassWeightModel(models);
+    }
+
+    @Override
+    public double[] featureImportance(FeatureVector fv) {
+        double[] ret = null; 
+        for (Model m : models){
+            double[] mImportance = m.featureImportance(fv);
+            if (ret == null)
+                ret = mImportance;
+            else
+                for (int i = 0;i < ret.length;i++)
+                    ret[i] += mImportance[i]; 
+        }
+        return ret;
     }
 }
