@@ -26,7 +26,7 @@ not be -1 or 1, but an integer value from 1 ... numClasses stored in the y value
 Each score can be retrieved using the Model.score() function, which is an array where each index into the 
 array represents the class integer value (-1 to make it zero based).
 
-The library was developed and tested in Intellij using Java 8, but can be built, installed and run from Maven and 
+The library was developed and tested in Intellij using Java 8, but can be built, installed and run from Maven or Gradle and 
 should work on lower Java versions.  The only dependencies in the library currently are JCommander for easy command
 line parsing, slf4j/logback for logging, and LMAX disruptor for fast contention-free ring buffers.
 
@@ -141,3 +141,7 @@ model.save(new FileOutputStream("svm.model"));
 ## Other examples
 
 There are some complete command line programs contained in the 'exec' area that can be used for different types of simple tasks, but this is mainly intended as a library that you can use to integrate SGD into your own applications.  I used this library to implement the NBSVM algorithm using SGD and making use of overlapped IO (https://github.com/dpressel/nbsvm-xl).  I also wrote a simple Torch 'nn'-like neural net package in Java which depends on this library (https://github.com/dpressel/n3rd).
+
+## Building
+
+* `./gradlew build`
