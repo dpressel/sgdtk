@@ -7,8 +7,7 @@ import org.sgdtk.Metrics;
 import org.sgdtk.io.CRFXXTemplateLoader;
 import org.sgdtk.struct.*;
 
-import java.io.File;
-import java.io.FileInputStream;
+import java.io.*;
 import java.util.List;
 
 /**
@@ -26,6 +25,9 @@ public class EvalStruct
         @Parameter(description = "File to evaluate", names = {"--eval", "-f"})
         public String eval;
 
+        @Parameter(description = "File to write to", names = {"--output", "-o"})
+        public String output;
+
         @Parameter(description = "Model to use", names = {"--model", "-s"})
         public String model;
 
@@ -37,7 +39,7 @@ public class EvalStruct
 
     }
 
-    public static void evalOneMaybePrint(SequentialLearner learner, SequentialModel model, FeatureVectorSequence sequence, FeatureNameEncoder labelEncoder, Metrics metrics)
+    public static void evalAndWrite(PrintStream os, SequentialLearner learner, SequentialModel model, FeatureVectorSequence sequence, FeatureNameEncoder labelEncoder, Metrics metrics)
     {
 
         Path path = learner.evalOne(model, sequence, metrics);
@@ -48,11 +50,13 @@ public class EvalStruct
             for (int i = 0, sz = path.size(); i < sz; ++i)
             {
                 State state = states.get(i);
-                String surfaceTerm = state.getComponents()[0];
+                String[] components = state.getComponents();
+                String surfaceTerm = components[0];
+                String gold = components[components.length - 1];
                 String labelGuess = labelEncoder.nameOf(path.at(i));
-                System.out.print(surfaceTerm + "_" + labelGuess + " ");
+                os.println(surfaceTerm + " " + gold + " " + labelGuess);
             }
-            System.out.println();
+            os.println();
         }
 
     }
@@ -81,11 +85,12 @@ public class EvalStruct
             Metrics metrics = new Metrics();
             SGDSequentialLearner evaluator = new SGDSequentialLearner();
             FeatureNameEncoder labelEncoder = jointFeatureEncoder.getLabelEncoder();
+            PrintStream os = params.output == null ? System.out : new PrintStream(new FileOutputStream(params.output));
             for (FeatureVectorSequence sequence : data)
             {
-                evalOneMaybePrint(evaluator, model, sequence, labelEncoder, metrics);
+                evalAndWrite(os, evaluator, model, sequence, labelEncoder, metrics);
             }
-            System.out.println("\nloss=" + metrics.getLoss());
+
             double pctError = metrics.getError() * 100.;
             System.out.println(String.format("error=%.2f%%", pctError));
 

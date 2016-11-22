@@ -24,11 +24,6 @@ public class SumWordVecDatasetReader implements DatasetReader
 
     Word2VecModel word2vecModel;
     private long embeddingSize;
-    private int lineNumber = 0;
-
-
-    HashFeatureEncoder hashFeatureEncoder = new HashFeatureEncoder(24);
-
     FeatureNameEncoder labelEncoder;
 
     @Override
@@ -60,7 +55,6 @@ public class SumWordVecDatasetReader implements DatasetReader
     @Override
     public final void open(File... file) throws IOException
     {
-        lineNumber = 0;
         reader = new BufferedReader(new FileReader(file[0]));
     }
 
@@ -117,8 +111,6 @@ public class SumWordVecDatasetReader implements DatasetReader
         {
             return null;
         }
-
-        lineNumber++;
 
         final StringTokenizer tokenizer = new StringTokenizer(line, " \t");
 

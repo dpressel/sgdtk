@@ -116,6 +116,7 @@ public class Train
         if (fileType == FileType.TSV || fileType == FileType.TXT)
         {
             System.out.println("Loading 2-class TSV (-1, 1)\tContent");
+
             FixedWidthDatasetReader fixedWidthDatasetReader = new FixedWidthDatasetReader(ngrams);
             reader = fixedWidthDatasetReader;
             dataset = fixedWidthDatasetReader.load(new File(file));
