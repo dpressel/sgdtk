@@ -10,7 +10,7 @@ import java.util.List;
  */
 public class FeatureTemplate
 {
-    private List<FeatureExtractor> extractors;
+    private List<FeatureExtractorInterface> extractors;
 
     /**
      * Construct a feature template, we try and attempt to size the list to a likely initial size
@@ -18,14 +18,14 @@ public class FeatureTemplate
     public FeatureTemplate()
     {
         // Most likely next power of 2
-        this.extractors = new ArrayList<FeatureExtractor>(32);
+        this.extractors = new ArrayList<FeatureExtractorInterface>(32);
     }
 
     /**
      * Construct a template from a pre-existing list of extractors
      * @param featureExtractors The list
      */
-    public FeatureTemplate(List<FeatureExtractor> featureExtractors)
+    public FeatureTemplate(List<FeatureExtractorInterface> featureExtractors)
     {
         this.extractors = featureExtractors;
     }
@@ -34,7 +34,7 @@ public class FeatureTemplate
      * Get the list of extractors
      * @return The list
      */
-    public List<FeatureExtractor> getExtractors()
+    public List<FeatureExtractorInterface> getExtractors()
     {
         return extractors;
     }
@@ -43,7 +43,7 @@ public class FeatureTemplate
      * Set the list of extractors
      * @param featureExtractors The list
      */
-    public void setExtractors(List<FeatureExtractor> featureExtractors)
+    public void setExtractors(List<FeatureExtractorInterface> featureExtractors)
     {
         this.extractors = featureExtractors;
     }
@@ -52,7 +52,7 @@ public class FeatureTemplate
      * Add a single extractor
      * @param extractor An extractor
      */
-    public void addExtractor(FeatureExtractor extractor)
+    public void addExtractor(FeatureExtractorInterface extractor)
     {
         this.extractors.add(extractor);
     }

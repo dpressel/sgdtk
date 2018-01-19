@@ -75,7 +75,7 @@ public class SequenceToFeatures implements SequentialFeatureProvider
         }
         int nPos = states.size();
 
-        List<FeatureExtractor> extractors = template.getExtractors();
+        List<FeatureExtractorInterface> extractors = template.getExtractors();
         int [] orders = new int[extractors.size()];
         for (int i = 0; i < orders.length; ++i)
         {
@@ -99,29 +99,32 @@ public class SequenceToFeatures implements SequentialFeatureProvider
             }
             for (int i = 0; i < orders.length; ++i)
             {
-                FeatureExtractor extractor = extractors.get(i);
-                String feature = extractor.run(states, pos);
+                FeatureExtractorInterface extractor = extractors.get(i);
+                String[] features = extractor.run(states, pos);
                 // feature could be null if the extractor cannot fit at this point
                 // just take it out of the picture
-                if (feature == null)
+                if (features == null)
                     continue;
 
-                // Note that all features are binary, if attested in this example, thats a 1
-                int featureIndex = encoder.lookupOrCreate(feature);
-                if (featureIndex == -1)
+                for (String feature : features)
                 {
-                    // Did not create feature since its frequency was too low
-                    continue;
-                }
-                if (orders[i] == 1)
-                {
-                    // Add this feature to the unigram feature vector
-                    uFeatures.add(new Offset(featureIndex, 1.));
-                }
-                else if (orders[i] == 2)
-                {
-                    // Add this feature to the bigram feature vector
-                    bFeatures.add(new Offset(featureIndex, 1.));
+                    // Note that all features are binary, if attested in this example, thats a 1
+                    int featureIndex = encoder.lookupOrCreate(feature);
+                    if (featureIndex == -1)
+                    {
+                        // Did not create feature since its frequency was too low
+                        continue;
+                    }
+                    if (orders[i] == 1)
+                    {
+                        // Add this feature to the unigram feature vector
+                        uFeatures.add(new Offset(featureIndex, 1.));
+                    }
+                    else if (orders[i] == 2)
+                    {
+                        // Add this feature to the bigram feature vector
+                        bFeatures.add(new Offset(featureIndex, 1.));
+                    }
                 }
             }
 

@@ -104,15 +104,18 @@ public final class ExecUtils
                 String label = state.getLabel();
                 attestedLabels.lookupOrCreate(label);
                 //attestedLabels.add(label);
-                for (FeatureExtractor extractor : featureTemplate.getExtractors())
+                for (FeatureExtractorInterface extractor : featureTemplate.getExtractors())
                 {
-                    String feature = extractor.run(states, pos);
-                    Integer x = ftable.get(feature);
-                    if (x == null)
+                    String[] features = extractor.run(states, pos);
+                    for (String feature : features)
                     {
-                        x = 0;
+                        Integer x = ftable.get(feature);
+                        if (x == null)
+                        {
+                            x = 0;
+                        }
+                        ftable.put(feature, x + 1);
                     }
-                    ftable.put(feature, x + 1);
                 }
             }
         }

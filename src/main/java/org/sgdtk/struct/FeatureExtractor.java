@@ -7,7 +7,7 @@ import java.util.List;
  *
  * @author dpressel
  */
-public class FeatureExtractor
+public class FeatureExtractor implements FeatureExtractorInterface
 {
     private final String ns;
     private final List<FeatureExtractorPart> parts;
@@ -32,7 +32,13 @@ public class FeatureExtractor
      * @param current The current absolute position in the sequence
      * @return
      */
-    public String run(List<State> states, int current)
+    @Override
+    public String[] run(List<State> states, int current)
+    {
+        return new String[]{ runOne(states, current) };
+    }
+
+    private String runOne(List<State> states, int current)
     {
         StringBuffer sb = new StringBuffer();
         for (FeatureExtractorPart part : parts)
@@ -49,6 +55,7 @@ public class FeatureExtractor
      * The order of this feature is the max of all of its parts
      * @return The order (1 or 2)
      */
+    @Override
     public int getOrder()
     {
         int maxOrder = 0;
@@ -72,6 +79,7 @@ public class FeatureExtractor
      * Get the number of parts in the extractor
      * @return
      */
+    @Override
     public int size()
     {
         return parts.size();
