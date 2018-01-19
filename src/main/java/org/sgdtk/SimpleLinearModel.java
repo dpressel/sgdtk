@@ -152,5 +152,17 @@ public class SimpleLinearModel implements WeightModel
         return weights.dot(weights);
     }
 
+    /**
+     * The importance of a feature is the absolute value of its contribution to this fv score
+     */
+    @Override
+    public double[] featureImportance(FeatureVector fv) {
+        double []ret = new double[weights.sz];
+        for (Offset o : fv.getX().getNonZeroOffsets()){
+            ret[o.index] = weights.get(o.index)*o.value;
+        }
+        return ret;
+    }
+
 
 }
